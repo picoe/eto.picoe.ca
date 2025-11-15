@@ -1,0 +1,51 @@
+{
+  "name": "my-website",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "docusaurus": "docusaurus",
+    "start": "docusaurus start",
+    "build": "docusaurus build --out-dir ../artifacts/docs",
+    "build-api": "dotnet run --project GenerateApiDocs/GenerateApiDocs.csproj -- --split-members --flatten-namespaces --move-deprecated-members ../artifacts/core/Eto/Debug/netstandard2.0/Eto.dll ../artifacts/core/Eto.Serialization.Xaml/Debug/netstandard2.0/Eto.Serialization.Xaml.dll ../artifacts/core/Eto.Serialization.Json/Debug/netstandard2.0/Eto.Serialization.Json.dll ../artifacts/apidocs",
+    "swizzle": "docusaurus swizzle",
+    "deploy": "docusaurus deploy",
+    "clear": "docusaurus clear",
+    "serve": "docusaurus serve --dir ../artifacts/docs --config ./docusaurus.config.js",
+    "write-translations": "docusaurus write-translations",
+    "write-heading-ids": "docusaurus write-heading-ids"
+  },
+  "dependencies": {
+    "@docusaurus/core": "3.9.2",
+    "@docusaurus/preset-classic": "3.9.2",
+    "@easyops-cn/docusaurus-search-local": "^0.52.1",
+    "@mdx-js/react": "^3.1.1",
+    "clsx": "^2.1.1",
+    "docusaurus-lunr-search": "^3.6.0",
+    "glob": "^11.0.3",
+    "prism-react-renderer": "^2.4.1",
+	"prism-js": "1.0.0",
+	"prism-themes": "1.9.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+	
+  },
+  "devDependencies": {
+    "@docusaurus/module-type-aliases": "3.9.2",
+    "@docusaurus/types": "3.9.2"
+  },
+  "browserslist": {
+    "production": [
+      ">0.5%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 3 chrome version",
+      "last 3 firefox version",
+      "last 5 safari version"
+    ]
+  },
+  "engines": {
+    "node": ">=20.0"
+  }
+}

@@ -1,0 +1,9 @@
+<Project>
+  <Import Project="..\..\build\Common.Build.props" />
+
+  <PropertyGroup>
+    <BaseOutputPath>$(ArtifactsDir)tools\$(MSBuildProjectName)</BaseOutputPath>
+  
+  </PropertyGroup>
+  
+</Project>
