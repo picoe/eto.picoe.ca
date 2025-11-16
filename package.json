@@ -6,7 +6,7 @@
     "docusaurus": "docusaurus",
     "start": "docusaurus start",
     "build": "docusaurus build --out-dir artifacts/docs",
-    "build-api": "dotnet run --project GenerateApiDocs/GenerateApiDocs.csproj -- --split-members --flatten-namespaces --move-deprecated-members Eto.Forms@2.10.2 Eto.Serialization.Xaml@2.10.2 Eto.Serialization.Json@2.10.2 RhinoCommon@9.0.25315.12305-wip artifacts/apidocs",
+    "build-api": "dotnet run --project GenerateApiDocs/GenerateApiDocs.csproj -- --reference Microsoft.NETFramework.ReferenceAssemblies.net48@1.0.3 --split-members --flatten-namespaces --move-deprecated-members Eto.Forms@2.10.2 Eto.Serialization.Xaml@2.10.2 Eto.Serialization.Json@2.10.2 RhinoCommon@9.0.25315.12305-wip artifacts/apidocs",
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
     "clear": "docusaurus clear",

@@ -213,18 +213,55 @@ sealed class AssemblyLoader : IDisposable
 		var candidates = new List<NuGetAssemblyCandidate>();
 		foreach (var entry in archive.Entries)
 		{
-			if (!entry.FullName.StartsWith("lib/", StringComparison.OrdinalIgnoreCase))
-				continue;
 			if (!entry.FullName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
 				continue;
 
-			var framework = GetFrameworkFromEntry(entry.FullName);
-			if (framework == null)
-				continue;
-
-			candidates.Add(new NuGetAssemblyCandidate(entry, framework, NormalizeFramework(framework)));
+			if (TryGetFrameworkInfo(entry.FullName, out var framework, out var normalized))
+			{
+				candidates.Add(new NuGetAssemblyCandidate(entry, framework, normalized));
+			}
 		}
 		return candidates;
+	}
+
+	private static bool TryGetFrameworkInfo(string entryFullName, out string framework, out string normalizedFramework)
+	{
+		framework = "";
+		normalizedFramework = "";
+
+		var segments = entryFullName.Split('/', StringSplitOptions.RemoveEmptyEntries);
+		if (segments.Length < 2)
+			return false;
+
+		var root = segments[0];
+		if (root.Equals("lib", StringComparison.OrdinalIgnoreCase) || root.Equals("ref", StringComparison.OrdinalIgnoreCase))
+		{
+			framework = segments[1];
+			normalizedFramework = NormalizeFramework(framework);
+			return true;
+		}
+
+		if (root.Equals("build", StringComparison.OrdinalIgnoreCase) || root.Equals("buildtransitive", StringComparison.OrdinalIgnoreCase))
+		{
+			if (segments.Length >= 3 && segments[1].Equals(".NETFramework", StringComparison.OrdinalIgnoreCase))
+			{
+				var tfm = ConvertDotNetFrameworkVersion(segments[2]);
+				if (string.IsNullOrEmpty(tfm))
+					return false;
+				framework = tfm;
+				normalizedFramework = NormalizeFramework(tfm);
+				return true;
+			}
+
+			if (segments.Length >= 2)
+			{
+				framework = segments[1];
+				normalizedFramework = NormalizeFramework(framework);
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private FrameworkSelection SelectFrameworkCandidates(List<NuGetAssemblyCandidate> candidates, string packageId, string? preferredFramework)
@@ -413,20 +450,6 @@ sealed class AssemblyLoader : IDisposable
 			|| packageId.Equals("NETStandard.Library", StringComparison.OrdinalIgnoreCase);
 	}
 
-	private static string? GetFrameworkFromEntry(string entryFullName)
-	{
-		const string prefix = "lib/";
-		if (!entryFullName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-			return null;
-
-		var remainder = entryFullName[prefix.Length..];
-		var slashIndex = remainder.IndexOf('/');
-		if (slashIndex < 0)
-			return null;
-
-		return remainder[..slashIndex];
-	}
-
 	private static string NormalizeFramework(string framework)
 	{
 		if (string.IsNullOrEmpty(framework))
@@ -474,6 +497,27 @@ sealed class AssemblyLoader : IDisposable
 		}
 
 		return preferenceOrder.Length + framework.Length;
+	}
+
+	private static string? ConvertDotNetFrameworkVersion(string versionSegment)
+	{
+		if (string.IsNullOrWhiteSpace(versionSegment))
+			return null;
+		versionSegment = versionSegment.Trim();
+		if (versionSegment.StartsWith("v", StringComparison.OrdinalIgnoreCase))
+			versionSegment = versionSegment[1..];
+
+		var builder = new StringBuilder();
+		foreach (var ch in versionSegment)
+		{
+			if (char.IsDigit(ch))
+				builder.Append(ch);
+		}
+
+		if (builder.Length == 0)
+			return null;
+
+		return "net" + builder.ToString();
 	}
 
 	private static ZipArchiveEntry? FindXmlDocEntry(ZipArchive archive, ZipArchiveEntry assemblyEntry)
