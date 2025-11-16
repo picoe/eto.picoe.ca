@@ -6,6 +6,12 @@
             "type": "shell",
             "command": "npm run serve",
             "problemMatcher": []
+        },
+        {
+            "label": "build-api",
+            "type": "shell",
+            "command": "dotnet build GenerateApiDocs/GenerateApiDocs.slnx",
+            "problemMatcher": []
         }
     ]
 }

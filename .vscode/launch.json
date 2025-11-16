@@ -1,0 +1,14 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "coreclr",
+            "request": "launch",
+            "name": "Build API Docs",
+            "preLaunchTask": "build-api",
+            "program": "artifacts/GenerateApiDocs/Debug/net8.0/GenerateApiDocs.dll",
+        }
+        
+    ],
+    "compounds": []
+}
