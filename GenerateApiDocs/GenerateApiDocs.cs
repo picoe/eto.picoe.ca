@@ -7,6 +7,8 @@ using System.Reflection;
 using System.Xml.Linq;
 using System.Text;
 using System.Runtime.Loader;
+using System.Net.Http;
+using System.Text.Json;
 using GenerateApiDocs;
 using GenerateApiDocs.Formatters;
 
@@ -15,7 +17,7 @@ using GenerateApiDocs.Formatters;
 
 if (args.Length < 2)
 {
-	Console.WriteLine("Usage: dotnet run -- [options] <Assembly.dll> [<Assembly2.dll> ...] <OutputDir>");
+	Console.WriteLine("Usage: dotnet run -- [options] <Assembly.dll|NugetPackage> [<Assembly2.dll> ...] <OutputDir>");
 	Console.WriteLine("Example: dotnet run -- path/To/MyFile.dll path/to/OtherFile.dll docs/api");
 	Console.WriteLine("Options:");
 	Console.WriteLine("  --flatten-namespaces                Flatten namespaces in output paths");
@@ -75,9 +77,13 @@ if (assemblyArgs.Count == 0)
 	return 1;
 }
 
+using var httpClient = new HttpClient();
+const string NuGetFlatContainerBaseUrl = "https://api.nuget.org/v3-flatcontainer/";
+
 var typeLookup = new Dictionary<string, Type>();
 var allXmlMembers = new List<XElement>();
 var assemblyInputs = new List<AssemblyInput>();
+var assemblyPackageMap = new Dictionary<string, NuGetPackageInfo?>(StringComparer.OrdinalIgnoreCase);
 
 foreach (var asmArg in assemblyArgs)
 {
@@ -91,9 +97,13 @@ foreach (var asmArg in assemblyArgs)
 foreach (var asmInput in assemblyInputs)
 {
 	var asmPath = asmInput.AssemblyPath;
-	var xmlPath = asmInput.XmlDocPath;
+var xmlPath = asmInput.XmlDocPath;
 
-	var asm = Assembly.LoadFrom(asmPath);
+var asm = Assembly.LoadFrom(asmPath);
+var asmLocation = asm.Location;
+if (!string.IsNullOrEmpty(asmLocation))
+	assemblyPackageMap[asmLocation] = asmInput.Package;
+
 	foreach (var type in asm.GetExportedTypes())
 	{
 		var key = XmlDocumentation.NormalizeTypeName(type);
@@ -101,11 +111,14 @@ foreach (var asmInput in assemblyInputs)
 			typeLookup[key] = type;
 	}
 
-	var xmlDoc = XDocument.Load(xmlPath);
-	var membersElement = xmlDoc.Root?.Element("members");
-	if (membersElement != null)
+	if (!string.IsNullOrEmpty(xmlPath) && File.Exists(xmlPath))
 	{
-		allXmlMembers.AddRange(membersElement.Elements("member"));
+		var xmlDoc = XDocument.Load(xmlPath);
+		var membersElement = xmlDoc.Root?.Element("members");
+		if (membersElement != null)
+		{
+			allXmlMembers.AddRange(membersElement.Elements("member"));
+		}
 	}
 }
 
@@ -213,8 +226,16 @@ foreach (var type in allTypes)
 	w.WriteLine($"Namespace: {(string.IsNullOrEmpty(ns) ? "`(global)`" : $"`{ns}`")}<br />");
 	w.WriteLine($"Type: `{GetTypeKind(type)}`<br />");
 
-	if (assemblyInputs.Count > 1)
+	var packageInfo = GetPackageInfoForAssembly(type.Assembly);
+	if (assemblyInputs.Count > 1 || packageInfo != null)
+	{
 		w.WriteLine($"Assembly: `{type.Assembly.GetName().Name}.dll`<br />");
+		if (packageInfo != null)
+		{
+			var packageDisplay = Helpers.EscapePlainText(FormatPackageDisplay(packageInfo));
+			w.WriteLine($"NuGet package: `{packageDisplay}`<br />");
+		}
+	}
 	w.WriteLine("</div>");
 
 	w.WriteLine();
@@ -1192,15 +1213,51 @@ SectionEntry GetOrCreateSection(TypeOutputContext context, string label)
 	return section;
 }
 
+NuGetPackageInfo? GetPackageInfoForAssembly(Assembly assembly)
+{
+	if (assembly == null)
+		return null;
+
+	var location = assembly.Location;
+	if (string.IsNullOrEmpty(location))
+		return null;
+
+	return assemblyPackageMap.TryGetValue(location, out var info) ? info : null;
+}
+
+string FormatPackageDisplay(NuGetPackageInfo package)
+{
+	if (string.IsNullOrEmpty(package.Version))
+		return package.Id;
+	return $"{package.Id} {package.Version}";
+}
+
 // ---------------- Assembly input helpers ----------------
 
 AssemblyInput? ResolveAssemblyInput(string asmArg)
 {
+	if (string.IsNullOrWhiteSpace(asmArg))
+	{
+		Console.Error.WriteLine("Invalid assembly argument.");
+		return null;
+	}
+
 	var fullPath = Path.GetFullPath(asmArg);
-	var ext = Path.GetExtension(fullPath);
-	if (!string.IsNullOrEmpty(ext) && ext.Equals(".nupkg", StringComparison.OrdinalIgnoreCase))
-		return CreateAssemblyInputFromPackage(fullPath);
-	return CreateAssemblyInputFromAssembly(fullPath);
+	if (File.Exists(fullPath))
+	{
+		var ext = Path.GetExtension(fullPath);
+		if (!string.IsNullOrEmpty(ext) && ext.Equals(".nupkg", StringComparison.OrdinalIgnoreCase))
+			return CreateAssemblyInputFromPackage(fullPath);
+		return CreateAssemblyInputFromAssembly(fullPath);
+	}
+
+	if (LooksLikePackageId(asmArg))
+	{
+		return CreateAssemblyInputFromNuGetPackage(asmArg);
+	}
+
+	Console.Error.WriteLine($"Assembly not found: {fullPath}");
+	return null;
 }
 
 AssemblyInput? CreateAssemblyInputFromAssembly(string asmPath)
@@ -1215,14 +1272,36 @@ AssemblyInput? CreateAssemblyInputFromAssembly(string asmPath)
 
 	if (xmlPath == null || !File.Exists(xmlPath))
 	{
-		Console.Error.WriteLine($"XML doc file not found: {xmlPath}");
-		return null;
+		Console.WriteLine($"Warning: XML doc file not found: {xmlPath}");
+		xmlPath = null;
 	}
 
 	return new AssemblyInput(asmPath, xmlPath);
 }
 
-AssemblyInput? CreateAssemblyInputFromPackage(string packagePath)
+AssemblyInput? CreateAssemblyInputFromNuGetPackage(string packageSpec)
+{
+	if (!TryParsePackageSpec(packageSpec, out var packageId, out var versionSpec))
+	{
+		Console.Error.WriteLine($"Invalid NuGet package specification: {packageSpec}");
+		return null;
+	}
+
+	var packageVersion = versionSpec ?? GetLatestPackageVersion(packageId);
+	if (string.IsNullOrEmpty(packageVersion))
+	{
+		Console.Error.WriteLine($"Unable to determine a version for package: {packageId}");
+		return null;
+	}
+
+	var packagePath = DownloadNuGetPackage(packageId, packageVersion);
+	if (packagePath == null)
+		return null;
+
+	return CreateAssemblyInputFromPackage(packagePath, new NuGetPackageInfo(packageId, packageVersion));
+}
+
+AssemblyInput? CreateAssemblyInputFromPackage(string packagePath, NuGetPackageInfo? overridePackageInfo = null)
 {
 	if (!File.Exists(packagePath))
 	{
@@ -1233,7 +1312,8 @@ AssemblyInput? CreateAssemblyInputFromPackage(string packagePath)
 	using var packageStream = File.OpenRead(packagePath);
 	using var archive = new ZipArchive(packageStream, ZipArchiveMode.Read, leaveOpen: false);
 
-	var packageId = ReadPackageId(archive) ?? Path.GetFileNameWithoutExtension(packagePath);
+	var packageInfo = overridePackageInfo ?? ReadPackageInfo(archive) ?? new NuGetPackageInfo(Path.GetFileNameWithoutExtension(packagePath), "");
+	var packageId = packageInfo.Id;
 	var candidates = GetPackageAssemblyCandidates(archive);
 	if (candidates.Count == 0)
 	{
@@ -1252,26 +1332,28 @@ AssemblyInput? CreateAssemblyInputFromPackage(string packagePath)
 		.ThenBy(c => c.Entry.FullName, StringComparer.OrdinalIgnoreCase)
 		.First();
 
-	var xmlEntry = FindXmlDocEntry(archive, selected.Entry);
-	if (xmlEntry == null)
-	{
-		Console.Error.WriteLine($"XML doc file not found for {selected.Entry.FullName} inside package: {packagePath}");
-		return null;
-	}
-
 	var tempDir = Path.Combine(Path.GetTempPath(), "GenerateApiDocs", Guid.NewGuid().ToString("n"));
 	Directory.CreateDirectory(tempDir);
 
 	var asmPath = Path.Combine(tempDir, selected.Entry.Name);
 	ExtractArchiveEntry(selected.Entry, asmPath);
 
-	var xmlPath = Path.Combine(tempDir, xmlEntry.Name);
-	ExtractArchiveEntry(xmlEntry, xmlPath);
+	string? xmlPath = null;
+	var xmlEntry = FindXmlDocEntry(archive, selected.Entry);
+	if (xmlEntry != null)
+	{
+		xmlPath = Path.Combine(tempDir, xmlEntry.Name);
+		ExtractArchiveEntry(xmlEntry, xmlPath);
+	}
+	else
+	{
+		Console.WriteLine($"Warning: XML doc file not found for {selected.Entry.FullName} inside package: {packagePath}");
+	}
 
-	return new AssemblyInput(asmPath, xmlPath);
+	return new AssemblyInput(asmPath, xmlPath, packageInfo);
 }
 
-string? ReadPackageId(ZipArchive archive)
+NuGetPackageInfo? ReadPackageInfo(ZipArchive archive)
 {
 	var nuspecEntry = archive.Entries.FirstOrDefault(e => e.FullName.EndsWith(".nuspec", StringComparison.OrdinalIgnoreCase));
 	if (nuspecEntry == null)
@@ -1289,7 +1371,12 @@ string? ReadPackageId(ZipArchive archive)
 		return null;
 
 	var idElement = metadata.Element(ns + "id") ?? metadata.Element("id");
-	return idElement?.Value?.Trim();
+	var versionElement = metadata.Element(ns + "version") ?? metadata.Element("version");
+	var id = idElement?.Value?.Trim();
+	if (string.IsNullOrEmpty(id))
+		return null;
+	var version = versionElement?.Value?.Trim() ?? "";
+	return new NuGetPackageInfo(id, version);
 }
 
 List<NuGetAssemblyCandidate> GetPackageAssemblyCandidates(ZipArchive archive)
@@ -1396,6 +1483,163 @@ void ExtractArchiveEntry(ZipArchiveEntry entry, string destinationPath)
 	sourceStream.CopyTo(destinationStream);
 }
 
+bool TryParsePackageSpec(string packageSpec, out string packageId, out string? version)
+{
+	packageId = packageSpec;
+	version = null;
+	if (string.IsNullOrWhiteSpace(packageSpec))
+		return false;
+
+	var atIndex = packageSpec.IndexOf('@');
+	if (atIndex >= 0)
+	{
+		packageId = packageSpec[..atIndex];
+		version = packageSpec[(atIndex + 1)..];
+		if (string.IsNullOrWhiteSpace(version))
+			version = null;
+	}
+
+	packageId = packageId.Trim();
+	if (string.IsNullOrEmpty(packageId))
+		return false;
+
+	version = version?.Trim();
+	return true;
+}
+
+string? GetLatestPackageVersion(string packageId)
+{
+	try
+	{
+		var idLower = packageId.ToLowerInvariant();
+		var indexUrl = $"{NuGetFlatContainerBaseUrl}{idLower}/index.json";
+		using var response = httpClient.GetAsync(indexUrl).GetAwaiter().GetResult();
+		if (!response.IsSuccessStatusCode)
+		{
+			Console.Error.WriteLine($"Failed to query versions for {packageId} (HTTP {(int)response.StatusCode}).");
+			return null;
+		}
+
+		using var stream = response.Content.ReadAsStream();
+		using var doc = JsonDocument.Parse(stream);
+		if (!doc.RootElement.TryGetProperty("versions", out var versions))
+		{
+			Console.Error.WriteLine($"NuGet version index missing 'versions' array for {packageId}.");
+			return null;
+		}
+
+		string? latest = null;
+		string? latestStable = null;
+
+		foreach (var versionElement in versions.EnumerateArray())
+		{
+			var version = versionElement.GetString();
+			if (string.IsNullOrWhiteSpace(version))
+				continue;
+
+			latest = version;
+			if (!IsPrereleaseVersion(version))
+			{
+				latestStable = version;
+			}
+		}
+
+		return latestStable ?? latest;
+	}
+	catch (HttpRequestException ex)
+	{
+		Console.Error.WriteLine($"Error querying NuGet versions for {packageId}: {ex.Message}");
+		return null;
+	}
+	catch (JsonException ex)
+	{
+		Console.Error.WriteLine($"Error parsing NuGet version index for {packageId}: {ex.Message}");
+		return null;
+	}
+}
+
+string? DownloadNuGetPackage(string packageId, string version)
+{
+	try
+	{
+		var packagesRoot = Path.Combine(Path.GetTempPath(), "GenerateApiDocs", "packages");
+		Directory.CreateDirectory(packagesRoot);
+		var packageFileName = SanitizeFileName($"{packageId}.{version}.nupkg");
+		var destinationPath = Path.Combine(packagesRoot, packageFileName);
+		if (File.Exists(destinationPath))
+			return destinationPath;
+
+		Console.WriteLine($"Downloading {packageId} {version} from nuget.org...");
+
+		var idLower = packageId.ToLowerInvariant();
+		var versionLower = version.ToLowerInvariant();
+		var packageUrl = $"{NuGetFlatContainerBaseUrl}{idLower}/{versionLower}/{idLower}.{versionLower}.nupkg";
+
+		using var response = httpClient.GetAsync(packageUrl).GetAwaiter().GetResult();
+		if (!response.IsSuccessStatusCode)
+		{
+			Console.Error.WriteLine($"Failed to download {packageId} {version} (HTTP {(int)response.StatusCode}).");
+			return null;
+		}
+
+		using var stream = response.Content.ReadAsStream();
+		using var fileStream = File.Create(destinationPath);
+		stream.CopyTo(fileStream);
+
+		return destinationPath;
+	}
+	catch (HttpRequestException ex)
+	{
+		Console.Error.WriteLine($"Error downloading NuGet package {packageId} {version}: {ex.Message}");
+		return null;
+	}
+	catch (IOException ex)
+	{
+		Console.Error.WriteLine($"File error while downloading NuGet package {packageId} {version}: {ex.Message}");
+		return null;
+	}
+}
+
+bool LooksLikePackageId(string value)
+{
+	if (string.IsNullOrWhiteSpace(value))
+		return false;
+
+	if (value.IndexOfAny(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar }) >= 0)
+		return false;
+
+	if (value.Contains(':'))
+		return false;
+
+	if (value.EndsWith(".dll", StringComparison.OrdinalIgnoreCase) ||
+		value.EndsWith(".nupkg", StringComparison.OrdinalIgnoreCase) ||
+		value.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) ||
+		value.EndsWith(".xml", StringComparison.OrdinalIgnoreCase))
+	{
+		return false;
+	}
+
+	return true;
+}
+
+bool IsPrereleaseVersion(string version)
+{
+	if (string.IsNullOrWhiteSpace(version))
+		return false;
+	return version.Contains('-', StringComparison.Ordinal);
+}
+
+string SanitizeFileName(string value)
+{
+	var invalidChars = Path.GetInvalidFileNameChars();
+	var builder = new StringBuilder(value.Length);
+	foreach (var ch in value)
+	{
+		builder.Append(invalidChars.Contains(ch) ? '_' : ch);
+	}
+	return builder.ToString();
+}
+
 // ---------------- misc helpers ----------------
 
 
@@ -1455,6 +1699,8 @@ record class SectionEntry(string Label, List<string> DocIds);
 
 record class MemberTableEntry(string Section, string Label, string DocId, string Description);
 
-record class AssemblyInput(string AssemblyPath, string XmlDocPath);
+record class AssemblyInput(string AssemblyPath, string? XmlDocPath, NuGetPackageInfo? Package = null);
 
 record class NuGetAssemblyCandidate(ZipArchiveEntry Entry, string Framework, string NormalizedFramework);
+
+record class NuGetPackageInfo(string Id, string Version);

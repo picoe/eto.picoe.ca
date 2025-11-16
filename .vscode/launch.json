@@ -11,9 +11,9 @@
                 "--split-members",
                 "--flatten-namespaces",
                 "--move-deprecated-members",
-                "artifacts/core/Eto/Debug/netstandard2.0/Eto.dll",
-                "artifacts/core/Eto.Serialization.Xaml/Debug/netstandard2.0/Eto.Serialization.Xaml.dll",
-                "artifacts/core/Eto.Serialization.Json/Debug/netstandard2.0/Eto.Serialization.Json.dll",
+                "Eto.Forms@2.10.2",
+                "Eto.Serialization.Xaml@2.10.2",
+                "Eto.Serialization.Json@2.10.2",
                 "artifacts/apidocs"
             ],
         }
