@@ -26,6 +26,8 @@ You can also supply `.nupkg` files instead of direct `.dll` paths. The tool will
 
 If you don't have the package locally, pass the NuGet package ID (optionally in the form `PackageId@1.2.3`). The CLI will download the package from nuget.org on the fly, pull in its non-system NuGet dependencies, and use those assemblies + XML docs so referenced types can be resolved.
 
+Need to preload framework components or utility packages (e.g., `System.Windows.Forms`) that aren't direct dependencies of your target assemblies? Use `--reference` with either a DLL path, `.nupkg`, or package ID so those assemblies are available while generating docs.
+
 ### Options
 
 | Option | Description |
@@ -34,6 +36,7 @@ If you don't have the package locally, pass the NuGet package ID (optionally in 
 | `--include-explicit-implementations` | Adds a section that lists non-public explicit interface implementations. |
 | `--move-deprecated-members` | Renders properties/methods/constructors marked with `[Obsolete]` in dedicated sections at the end. |
 | `--split-members` | Generates one MDX file per constructor/field/property/event/method instead of a single page per type. |
+| `--reference <spec>` | Preload additional assemblies or packages (e.g., `System.Windows.Forms` or `PackageId@1.2.3`) so their types are available during generation. |
 
 The last argument must be the directory that will receive the generated MDX files (relative paths are accepted).
 
