@@ -30,9 +30,10 @@ sealed class AssemblyLoader : IDisposable
 	{
 		loadContext = AssemblyLoadContext.Default;
 		loadContext.Resolving += ResolveDependencyAssembly;
-		RegisterMetadataReference(typeof(object).Assembly.Location);
-		RegisterMetadataReference(typeof(Enumerable).Assembly.Location);
-		RegisterMetadataReference(typeof(Uri).Assembly.Location);
+		foreach (var runtimeAssembly in GetRuntimeReferencePaths())
+		{
+			RegisterMetadataReference(runtimeAssembly);
+		}
 	}
 
 	public void Dispose()
@@ -75,18 +76,10 @@ sealed class AssemblyLoader : IDisposable
 		return true;
 	}
 
-	public Assembly LoadAssembly(AssemblyInput assemblyInput)
-	{
-		try
-		{
-			return Assembly.LoadFrom(assemblyInput.AssemblyPath);
-		}
-		catch (Exception ex) when (ex is BadImageFormatException || ex is FileLoadException || ex is PlatformNotSupportedException || ex is NotSupportedException)
-		{
-			Console.WriteLine($"Loading {assemblyInput.AssemblyPath} via metadata-only context due to: {ex.Message}");
-			return LoadMetadataAssembly(assemblyInput.AssemblyPath);
-		}
-	}
+public Assembly LoadAssembly(AssemblyInput assemblyInput)
+{
+	return LoadMetadataAssembly(assemblyInput.AssemblyPath);
+}
 
 	private AssemblyInput? ResolveAssemblyInput(string asmArg)
 	{
@@ -728,7 +721,15 @@ sealed class AssemblyLoader : IDisposable
 	private Assembly LoadMetadataAssembly(string assemblyPath)
 	{
 		var context = GetMetadataLoadContext();
-		return context.LoadFromAssemblyPath(assemblyPath);
+		try
+		{
+			return context.LoadFromAssemblyPath(assemblyPath);
+		}
+		catch (FileLoadException) // already loaded
+		{
+			var asmName = AssemblyName.GetAssemblyName(assemblyPath);
+			return context.LoadFromAssemblyName(asmName);
+		}
 	}
 
 	private MetadataLoadContext GetMetadataLoadContext()
@@ -736,7 +737,7 @@ sealed class AssemblyLoader : IDisposable
 		if (metadataLoadContext == null || metadataContextDirty)
 		{
 			metadataLoadContext?.Dispose();
-			var resolver = new PathAssemblyResolver(metadataReferencePaths);
+			var resolver = new SafePathAssemblyResolver(metadataReferencePaths);
 			metadataLoadContext = new MetadataLoadContext(resolver, typeof(object).Assembly.GetName().Name);
 			metadataContextDirty = false;
 		}
@@ -748,8 +749,25 @@ sealed class AssemblyLoader : IDisposable
 	{
 		if (string.IsNullOrEmpty(path))
 			return;
+		if (!File.Exists(path))
+			return;
 		if (metadataReferencePaths.Add(Path.GetFullPath(path)))
 			metadataContextDirty = true;
+	}
+
+	private static IEnumerable<string> GetRuntimeReferencePaths()
+	{
+		var tpa = AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") as string;
+		if (string.IsNullOrEmpty(tpa))
+		{
+			yield break;
+		}
+
+		foreach (var path in tpa.Split(Path.PathSeparator))
+		{
+			if (!string.IsNullOrEmpty(path) && File.Exists(path))
+				yield return path;
+		}
 	}
 
 	private static string SanitizeFileName(string value)
@@ -797,10 +815,62 @@ sealed class AssemblyLoader : IDisposable
 			}
 			catch (FileLoadException)
 			{
-				return null;
+				try
+				{
+					var asmName = AssemblyName.GetAssemblyName(path);
+					return context.LoadFromAssemblyName(asmName);
+				}
+				catch (Exception)
+				{
+					return null;
+				}
 			}
 		}
 
 		return null;
+	}
+
+	private sealed class SafePathAssemblyResolver : MetadataAssemblyResolver
+	{
+		private readonly Dictionary<string, string> assemblyPathMap;
+
+		public SafePathAssemblyResolver(IEnumerable<string> paths)
+		{
+			assemblyPathMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+			foreach (var path in paths)
+			{
+				if (string.IsNullOrEmpty(path) || !File.Exists(path))
+					continue;
+				try
+				{
+					var name = AssemblyName.GetAssemblyName(path).Name;
+					if (string.IsNullOrEmpty(name))
+						continue;
+					if (!assemblyPathMap.ContainsKey(name))
+						assemblyPathMap[name] = path;
+				}
+				catch
+				{
+					// ignore invalid assemblies
+				}
+			}
+		}
+
+		public override Assembly? Resolve(MetadataLoadContext context, AssemblyName assemblyName)
+		{
+			if (assemblyName.Name != null && assemblyPathMap.TryGetValue(assemblyName.Name, out var path) && File.Exists(path))
+			{
+				try
+				{
+					return context.LoadFromAssemblyPath(path);
+				}
+				catch (FileLoadException)
+				{
+					return context.GetAssemblies().FirstOrDefault(a => AssemblyName.ReferenceMatchesDefinition(a.GetName(), assemblyName));
+				}
+			}
+
+			return context.GetAssemblies().FirstOrDefault(a => AssemblyName.ReferenceMatchesDefinition(a.GetName(), assemblyName));
+		}
 	}
 }

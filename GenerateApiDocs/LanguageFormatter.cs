@@ -22,14 +22,17 @@ abstract class LanguageFormatter
 
 	protected static bool TryGetDefaultValue(ParameterInfo parameter, out object? defaultValue)
 	{
-		if (parameter.HasDefaultValue)
+		try
 		{
-			defaultValue = parameter.DefaultValue;
+			defaultValue = parameter.RawDefaultValue;
 			if (defaultValue == DBNull.Value || defaultValue == Missing.Value)
 				defaultValue = null;
 			return true;
 		}
-		defaultValue = null;
-		return false;
+		catch (InvalidOperationException)
+		{
+			defaultValue = null;
+			return false;
+		}
 	}
 }

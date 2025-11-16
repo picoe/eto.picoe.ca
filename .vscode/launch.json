@@ -12,6 +12,7 @@
                 "--flatten-namespaces",
                 "--move-deprecated-members",
                 "--reference", "Microsoft.NETFramework.ReferenceAssemblies.net48@1.0.3",
+                "--reference", "System.Drawing.Common@10.0.0",
                 "Eto.Forms@2.10.2",
                 "Eto.Serialization.Xaml@2.10.2",
                 "Eto.Serialization.Json@2.10.2",

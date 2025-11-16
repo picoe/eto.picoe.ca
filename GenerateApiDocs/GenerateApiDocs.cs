@@ -436,15 +436,15 @@ void WriteDeprecationWarning(StreamWriter w, MemberInfo member)
 	if (member == null)
 		return;
 
-	var obsoleteAttr = GetObsoleteAttribute(member);
+	var obsoleteAttr = GetObsoleteInfo(member);
 	if (obsoleteAttr == null)
 		return;
 
-	var admonition = obsoleteAttr.IsError ? "error" : "warning";
-	var title = obsoleteAttr.IsError ? "Deprecated (errors)" : "Deprecated";
-	var message = string.IsNullOrWhiteSpace(obsoleteAttr.Message)
+	var admonition = obsoleteAttr.Value.IsError ? "error" : "warning";
+	var title = obsoleteAttr.Value.IsError ? "Deprecated (errors)" : "Deprecated";
+	var message = string.IsNullOrWhiteSpace(obsoleteAttr.Value.Message)
 		? "This member is deprecated and may be removed in future versions."
-		: Helpers.EscapePlainText(obsoleteAttr.Message);
+		: Helpers.EscapePlainText(obsoleteAttr.Value.Message);
 
 	w.WriteLine($":::{admonition} {title}");
 	w.WriteLine(message);
@@ -452,14 +452,38 @@ void WriteDeprecationWarning(StreamWriter w, MemberInfo member)
 	w.WriteLine();
 }
 
-bool IsDeprecated(MemberInfo member) => GetObsoleteAttribute(member) != null;
+bool IsDeprecated(MemberInfo member) => GetObsoleteInfo(member) != null;
 
-ObsoleteAttribute? GetObsoleteAttribute(MemberInfo member)
+ObsoleteInfo? GetObsoleteInfo(MemberInfo member)
 {
 	if (member == null)
 		return null;
-	return member.GetCustomAttribute<ObsoleteAttribute>();
+
+	var attrData = member.CustomAttributes.FirstOrDefault(a => a.AttributeType.FullName == typeof(ObsoleteAttribute).FullName);
+	if (attrData == null)
+		return null;
+
+	string? message = null;
+	var isError = false;
+
+	if (attrData.ConstructorArguments.Count > 0)
+		message = attrData.ConstructorArguments[0].Value as string;
+	if (attrData.ConstructorArguments.Count > 1)
+		isError = attrData.ConstructorArguments[1].Value is bool b && b;
+
+	foreach (var namedArg in attrData.NamedArguments)
+	{
+		if (namedArg.MemberName == nameof(ObsoleteAttribute.Message))
+			message = namedArg.TypedValue.Value as string;
+		else if (namedArg.MemberName == nameof(ObsoleteAttribute.IsError))
+			isError = namedArg.TypedValue.Value is bool b && b;
+	}
+
+	return new ObsoleteInfo(message, isError);
 }
+
+bool HasParamArrayAttribute(ParameterInfo parameter)
+	=> parameter.CustomAttributes.Any(a => a.AttributeType.FullName == typeof(ParamArrayAttribute).FullName);
 
 void WriteConstructorsSection(StreamWriter w, Type type, XmlDocumentation xmlDocs, Dictionary<string, string> typeIdMap, List<ConstructorInfo>? deprecatedConstructors, TypeOutputContext context)
 {
@@ -530,7 +554,7 @@ string GetParameterHeadingTypeName(ParameterInfo parameter)
 		type = type.GetElementType()!;
 		modifier = parameter.IsOut ? "out " : "ref ";
 	}
-	else if (parameter.GetCustomAttributes(typeof(ParamArrayAttribute), false).Any())
+	else if (HasParamArrayAttribute(parameter))
 	{
 		modifier = "params ";
 	}
@@ -1319,3 +1343,5 @@ record struct FrameworkSelection(string Framework, string NormalizedFramework, L
 record struct FrameworkExtractionResult(string? PrimaryAssemblyPath, string? PrimaryXmlPath);
 
 record struct NuGetDependency(string Id, string? VersionSpec);
+
+record struct ObsoleteInfo(string? Message, bool IsError);

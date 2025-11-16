@@ -6,7 +6,7 @@
     "docusaurus": "docusaurus",
     "start": "docusaurus start",
     "build": "docusaurus build --out-dir artifacts/docs",
-    "build-api": "dotnet run --project GenerateApiDocs/GenerateApiDocs.csproj -- --reference Microsoft.NETFramework.ReferenceAssemblies.net48@1.0.3 --split-members --flatten-namespaces --move-deprecated-members Eto.Forms@2.10.2 Eto.Serialization.Xaml@2.10.2 Eto.Serialization.Json@2.10.2 RhinoCommon@9.0.25315.12305-wip artifacts/apidocs",
+    "build-api": "rm -rf artifacts/apidocs && dotnet run --project GenerateApiDocs/GenerateApiDocs.csproj -- --reference Microsoft.NETFramework.ReferenceAssemblies.net48@1.0.3 --reference System.Drawing.Common@10.0.0 --split-members --move-deprecated-members Eto.Forms@2.10.2 Eto.Serialization.Xaml@2.10.2 Eto.Serialization.Json@2.10.2 artifacts/apidocs",
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
     "clear": "docusaurus clear",
@@ -23,11 +23,10 @@
     "docusaurus-lunr-search": "^3.6.0",
     "glob": "^11.0.3",
     "prism-react-renderer": "^2.4.1",
-	"prism-js": "1.0.0",
-	"prism-themes": "1.9.0",
+    "prism-js": "1.0.0",
+    "prism-themes": "1.9.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
-	
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "3.9.2",
