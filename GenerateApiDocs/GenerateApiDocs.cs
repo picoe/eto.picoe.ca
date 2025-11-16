@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 using System.Xml.Linq;
@@ -76,23 +77,21 @@ if (assemblyArgs.Count == 0)
 
 var typeLookup = new Dictionary<string, Type>();
 var allXmlMembers = new List<XElement>();
+var assemblyInputs = new List<AssemblyInput>();
 
 foreach (var asmArg in assemblyArgs)
 {
-	var asmPath = Path.GetFullPath(asmArg);
-	var xmlPath = Path.ChangeExtension(asmPath, ".xml");
-
-	if (!File.Exists(asmPath))
-	{
-		Console.Error.WriteLine($"Assembly not found: {asmPath}");
+	var assemblyInput = ResolveAssemblyInput(asmArg);
+	if (assemblyInput == null)
 		return 1;
-	}
 
-	if (!File.Exists(xmlPath))
-	{
-		Console.Error.WriteLine($"XML doc file not found: {xmlPath}");
-		return 1;
-	}
+	assemblyInputs.Add(assemblyInput);
+}
+
+foreach (var asmInput in assemblyInputs)
+{
+	var asmPath = asmInput.AssemblyPath;
+	var xmlPath = asmInput.XmlDocPath;
 
 	var asm = Assembly.LoadFrom(asmPath);
 	foreach (var type in asm.GetExportedTypes())
@@ -214,7 +213,7 @@ foreach (var type in allTypes)
 	w.WriteLine($"Namespace: {(string.IsNullOrEmpty(ns) ? "`(global)`" : $"`{ns}`")}<br />");
 	w.WriteLine($"Type: `{GetTypeKind(type)}`<br />");
 
-	if (assemblyArgs.Count > 1)
+	if (assemblyInputs.Count > 1)
 		w.WriteLine($"Assembly: `{type.Assembly.GetName().Name}.dll`<br />");
 	w.WriteLine("</div>");
 
@@ -259,7 +258,7 @@ foreach (var type in allTypes)
 WriteApiIndex(outputRoot, sidebarMap, namespaceSlugMap);
 
 WriteSidebar(outputRoot, sidebarMap, namespaceSlugMap);
-Console.WriteLine($"Generated {allTypes.Count} type pages from {assemblyArgs.Count} assemblies into: {outputRoot}");
+Console.WriteLine($"Generated {allTypes.Count} type pages from {assemblyInputs.Count} assemblies into: {outputRoot}");
 return 0;
 
 // ---------------- XML index ----------------
@@ -1193,6 +1192,212 @@ SectionEntry GetOrCreateSection(TypeOutputContext context, string label)
 	return section;
 }
 
+// ---------------- Assembly input helpers ----------------
+
+AssemblyInput? ResolveAssemblyInput(string asmArg)
+{
+	var fullPath = Path.GetFullPath(asmArg);
+	var ext = Path.GetExtension(fullPath);
+	if (!string.IsNullOrEmpty(ext) && ext.Equals(".nupkg", StringComparison.OrdinalIgnoreCase))
+		return CreateAssemblyInputFromPackage(fullPath);
+	return CreateAssemblyInputFromAssembly(fullPath);
+}
+
+AssemblyInput? CreateAssemblyInputFromAssembly(string asmPath)
+{
+	var xmlPath = Path.ChangeExtension(asmPath, ".xml");
+
+	if (!File.Exists(asmPath))
+	{
+		Console.Error.WriteLine($"Assembly not found: {asmPath}");
+		return null;
+	}
+
+	if (xmlPath == null || !File.Exists(xmlPath))
+	{
+		Console.Error.WriteLine($"XML doc file not found: {xmlPath}");
+		return null;
+	}
+
+	return new AssemblyInput(asmPath, xmlPath);
+}
+
+AssemblyInput? CreateAssemblyInputFromPackage(string packagePath)
+{
+	if (!File.Exists(packagePath))
+	{
+		Console.Error.WriteLine($"NuGet package not found: {packagePath}");
+		return null;
+	}
+
+	using var packageStream = File.OpenRead(packagePath);
+	using var archive = new ZipArchive(packageStream, ZipArchiveMode.Read, leaveOpen: false);
+
+	var packageId = ReadPackageId(archive) ?? Path.GetFileNameWithoutExtension(packagePath);
+	var candidates = GetPackageAssemblyCandidates(archive);
+	if (candidates.Count == 0)
+	{
+		Console.Error.WriteLine($"NuGet package does not contain any assemblies under lib/: {packagePath}");
+		return null;
+	}
+
+	var preferredCandidates = candidates
+		.Where(c => string.Equals(Path.GetFileNameWithoutExtension(c.Entry.Name), packageId, StringComparison.OrdinalIgnoreCase))
+		.ToList();
+	if (preferredCandidates.Count == 0)
+		preferredCandidates = candidates;
+
+	var selected = preferredCandidates
+		.OrderBy(c => GetFrameworkPriority(c.NormalizedFramework))
+		.ThenBy(c => c.Entry.FullName, StringComparer.OrdinalIgnoreCase)
+		.First();
+
+	var xmlEntry = FindXmlDocEntry(archive, selected.Entry);
+	if (xmlEntry == null)
+	{
+		Console.Error.WriteLine($"XML doc file not found for {selected.Entry.FullName} inside package: {packagePath}");
+		return null;
+	}
+
+	var tempDir = Path.Combine(Path.GetTempPath(), "GenerateApiDocs", Guid.NewGuid().ToString("n"));
+	Directory.CreateDirectory(tempDir);
+
+	var asmPath = Path.Combine(tempDir, selected.Entry.Name);
+	ExtractArchiveEntry(selected.Entry, asmPath);
+
+	var xmlPath = Path.Combine(tempDir, xmlEntry.Name);
+	ExtractArchiveEntry(xmlEntry, xmlPath);
+
+	return new AssemblyInput(asmPath, xmlPath);
+}
+
+string? ReadPackageId(ZipArchive archive)
+{
+	var nuspecEntry = archive.Entries.FirstOrDefault(e => e.FullName.EndsWith(".nuspec", StringComparison.OrdinalIgnoreCase));
+	if (nuspecEntry == null)
+		return null;
+
+	using var nuspecStream = nuspecEntry.Open();
+	var nuspec = XDocument.Load(nuspecStream);
+	var root = nuspec.Root;
+	if (root == null)
+		return null;
+
+	var ns = root.GetDefaultNamespace();
+	var metadata = root.Element(ns + "metadata") ?? root.Element("metadata");
+	if (metadata == null)
+		return null;
+
+	var idElement = metadata.Element(ns + "id") ?? metadata.Element("id");
+	return idElement?.Value?.Trim();
+}
+
+List<NuGetAssemblyCandidate> GetPackageAssemblyCandidates(ZipArchive archive)
+{
+	var candidates = new List<NuGetAssemblyCandidate>();
+	foreach (var entry in archive.Entries)
+	{
+		if (!entry.FullName.StartsWith("lib/", StringComparison.OrdinalIgnoreCase))
+			continue;
+		if (!entry.FullName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
+			continue;
+
+		var framework = GetFrameworkFromEntry(entry.FullName);
+		if (framework == null)
+			continue;
+
+		candidates.Add(new NuGetAssemblyCandidate(entry, framework, NormalizeFramework(framework)));
+	}
+	return candidates;
+}
+
+string? GetFrameworkFromEntry(string entryFullName)
+{
+	const string prefix = "lib/";
+	if (!entryFullName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+		return null;
+
+	var remainder = entryFullName[prefix.Length..];
+	var slashIndex = remainder.IndexOf('/');
+	if (slashIndex < 0)
+		return null;
+
+	return remainder[..slashIndex];
+}
+
+string NormalizeFramework(string framework)
+{
+	if (string.IsNullOrEmpty(framework))
+		return framework;
+
+	var delimiterIndex = framework.IndexOfAny(new[] { '-', '+' });
+	return delimiterIndex > 0 ? framework[..delimiterIndex] : framework;
+}
+
+int GetFrameworkPriority(string? framework)
+{
+	if (string.IsNullOrEmpty(framework))
+		return int.MaxValue;
+
+	ReadOnlySpan<string> preferenceOrder = new[]
+	{
+		"net8.0",
+		"net7.0",
+		"net6.0",
+		"net5.0",
+		"netcoreapp3.1",
+		"netcoreapp3.0",
+		"netcoreapp2.1",
+		"netcoreapp2.0",
+		"netstandard2.1",
+		"netstandard2.0",
+		"net48",
+		"net472",
+		"net471",
+		"net47",
+		"net462",
+		"net461",
+		"net46",
+		"net452",
+		"net451",
+		"net45",
+		"net40",
+		"net35"
+	};
+
+	for (var i = 0; i < preferenceOrder.Length; i++)
+	{
+		if (string.Equals(preferenceOrder[i], framework, StringComparison.OrdinalIgnoreCase))
+			return i;
+	}
+
+	return preferenceOrder.Length + framework.Length;
+}
+
+ZipArchiveEntry? FindXmlDocEntry(ZipArchive archive, ZipArchiveEntry assemblyEntry)
+{
+	string xmlName;
+	if (assemblyEntry.FullName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
+	{
+		xmlName = assemblyEntry.FullName[..^3] + "xml";
+	}
+	else
+	{
+		xmlName = $"{assemblyEntry.FullName}.xml";
+	}
+
+	return archive.Entries.FirstOrDefault(e => string.Equals(e.FullName, xmlName, StringComparison.OrdinalIgnoreCase));
+}
+
+void ExtractArchiveEntry(ZipArchiveEntry entry, string destinationPath)
+{
+	using var sourceStream = entry.Open();
+	using var destinationStream = File.Create(destinationPath);
+	sourceStream.CopyTo(destinationStream);
+}
+
+// ---------------- misc helpers ----------------
+
 
 // ---------------- misc helpers ----------------
 
@@ -1249,3 +1454,7 @@ record class SidebarEntry
 record class SectionEntry(string Label, List<string> DocIds);
 
 record class MemberTableEntry(string Section, string Label, string DocId, string Description);
+
+record class AssemblyInput(string AssemblyPath, string XmlDocPath);
+
+record class NuGetAssemblyCandidate(ZipArchiveEntry Entry, string Framework, string NormalizedFramework);

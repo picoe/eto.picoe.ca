@@ -7,6 +7,15 @@
             "name": "Build API Docs",
             "preLaunchTask": "build-api",
             "program": "artifacts/GenerateApiDocs/Debug/net8.0/GenerateApiDocs.dll",
+            "args": [
+                "--split-members",
+                "--flatten-namespaces",
+                "--move-deprecated-members",
+                "artifacts/core/Eto/Debug/netstandard2.0/Eto.dll",
+                "artifacts/core/Eto.Serialization.Xaml/Debug/netstandard2.0/Eto.Serialization.Xaml.dll",
+                "artifacts/core/Eto.Serialization.Json/Debug/netstandard2.0/Eto.Serialization.Json.dll",
+                "artifacts/apidocs"
+            ],
         }
         
     ],

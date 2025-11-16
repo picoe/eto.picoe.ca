@@ -22,6 +22,8 @@ dotnet run -- \
   ../api
 ```
 
+You can also supply `.nupkg` files instead of direct `.dll` paths. The tool will extract the matching assembly (preferring the DLL whose name matches the package ID) and its XML docs from the package's `lib/` folder before generating the pages.
+
 ### Options
 
 | Option | Description |
