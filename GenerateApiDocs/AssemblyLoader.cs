@@ -5,6 +5,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
 using System.Reflection;
+using System.Reflection.Metadata;
 using System.Runtime.Loader;
 using System.Text;
 using System.Text.Json;
@@ -19,13 +20,19 @@ sealed class AssemblyLoader : IDisposable
 	private readonly Dictionary<string, string> dependencyAssemblyPaths = new(StringComparer.OrdinalIgnoreCase);
 	private readonly HashSet<string> processedDependencyPackages = new(StringComparer.OrdinalIgnoreCase);
 	private readonly Dictionary<string, IReadOnlyList<NuGetVersion>> packageVersionsCache = new(StringComparer.OrdinalIgnoreCase);
+	private readonly HashSet<string> metadataReferencePaths = new(StringComparer.OrdinalIgnoreCase);
 	private readonly AssemblyLoadContext loadContext;
+	private MetadataLoadContext? metadataLoadContext;
+	private bool metadataContextDirty = true;
 	private bool disposed;
 
 	public AssemblyLoader()
 	{
 		loadContext = AssemblyLoadContext.Default;
 		loadContext.Resolving += ResolveDependencyAssembly;
+		RegisterMetadataReference(typeof(object).Assembly.Location);
+		RegisterMetadataReference(typeof(Enumerable).Assembly.Location);
+		RegisterMetadataReference(typeof(Uri).Assembly.Location);
 	}
 
 	public void Dispose()
@@ -34,6 +41,7 @@ sealed class AssemblyLoader : IDisposable
 			return;
 
 		loadContext.Resolving -= ResolveDependencyAssembly;
+		metadataLoadContext?.Dispose();
 		httpClient.Dispose();
 		disposed = true;
 	}
@@ -63,7 +71,21 @@ sealed class AssemblyLoader : IDisposable
 			return false;
 
 		RegisterDependencyAssembly(assemblyInput.AssemblyPath);
+		RegisterMetadataReference(assemblyInput.AssemblyPath);
 		return true;
+	}
+
+	public Assembly LoadAssembly(AssemblyInput assemblyInput)
+	{
+		try
+		{
+			return Assembly.LoadFrom(assemblyInput.AssemblyPath);
+		}
+		catch (Exception ex) when (ex is BadImageFormatException || ex is FileLoadException || ex is PlatformNotSupportedException || ex is NotSupportedException)
+		{
+			Console.WriteLine($"Loading {assemblyInput.AssemblyPath} via metadata-only context due to: {ex.Message}");
+			return LoadMetadataAssembly(assemblyInput.AssemblyPath);
+		}
 	}
 
 	private AssemblyInput? ResolveAssemblyInput(string asmArg)
@@ -100,14 +122,15 @@ sealed class AssemblyLoader : IDisposable
 			return null;
 		}
 
-		if (xmlPath == null || !File.Exists(xmlPath))
-		{
-			Console.WriteLine($"Warning: XML doc file not found: {xmlPath}");
-			xmlPath = null;
-		}
-
-		return new AssemblyInput(asmPath, xmlPath);
+	if (xmlPath == null || !File.Exists(xmlPath))
+	{
+		Console.WriteLine($"Warning: XML doc file not found: {xmlPath}");
+		xmlPath = null;
 	}
+
+	RegisterMetadataReference(asmPath);
+	return new AssemblyInput(asmPath, xmlPath);
+}
 
 	private AssemblyInput? CreateAssemblyInputFromNuGetPackage(string packageSpec)
 	{
@@ -702,6 +725,33 @@ sealed class AssemblyLoader : IDisposable
 		return true;
 	}
 
+	private Assembly LoadMetadataAssembly(string assemblyPath)
+	{
+		var context = GetMetadataLoadContext();
+		return context.LoadFromAssemblyPath(assemblyPath);
+	}
+
+	private MetadataLoadContext GetMetadataLoadContext()
+	{
+		if (metadataLoadContext == null || metadataContextDirty)
+		{
+			metadataLoadContext?.Dispose();
+			var resolver = new PathAssemblyResolver(metadataReferencePaths);
+			metadataLoadContext = new MetadataLoadContext(resolver, typeof(object).Assembly.GetName().Name);
+			metadataContextDirty = false;
+		}
+
+		return metadataLoadContext;
+	}
+
+	private void RegisterMetadataReference(string? path)
+	{
+		if (string.IsNullOrEmpty(path))
+			return;
+		if (metadataReferencePaths.Add(Path.GetFullPath(path)))
+			metadataContextDirty = true;
+	}
+
 	private static string SanitizeFileName(string value)
 	{
 		var invalidChars = Path.GetInvalidFileNameChars();
@@ -715,6 +765,7 @@ sealed class AssemblyLoader : IDisposable
 
 	private void RegisterDependencyAssembly(string assemblyPath)
 	{
+		RegisterMetadataReference(assemblyPath);
 		try
 		{
 			var assemblyName = AssemblyName.GetAssemblyName(assemblyPath);

@@ -94,7 +94,10 @@ var assemblyPackageMap = new Dictionary<string, NuGetPackageInfo?>(StringCompare
 foreach (var reference in referenceSpecs)
 {
 	if (!assemblyLoader.TryAddReference(reference))
+	{
+		Console.Error.WriteLine($"Failed to add reference: {reference}");
 		return 1;
+	}
 }
 
 if (!assemblyLoader.TryLoadAssemblies(assemblyArgs, out var assemblyInputs))
@@ -105,8 +108,8 @@ foreach (var asmInput in assemblyInputs)
 	var asmPath = asmInput.AssemblyPath;
 	var xmlPath = asmInput.XmlDocPath;
 
-	var asm = Assembly.LoadFrom(asmPath);
-	var asmLocation = asm.Location;
+	var asm = assemblyLoader.LoadAssembly(asmInput);
+	var asmLocation = string.IsNullOrEmpty(asm.Location) ? asmPath : asm.Location;
 	if (!string.IsNullOrEmpty(asmLocation))
 		assemblyPackageMap[asmLocation] = asmInput.Package;
 
