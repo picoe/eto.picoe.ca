@@ -9,6 +9,7 @@ using System.Text;
 using System.Runtime.Loader;
 using System.Net.Http;
 using System.Text.Json;
+using NuGet.Versioning;
 using GenerateApiDocs;
 using GenerateApiDocs.Formatters;
 
@@ -17,7 +18,7 @@ using GenerateApiDocs.Formatters;
 
 if (args.Length < 2)
 {
-	Console.WriteLine("Usage: dotnet run -- [options] <Assembly.dll|NugetPackage> [<Assembly2.dll> ...] <OutputDir>");
+	Console.WriteLine("Usage: dotnet run -- [options] <Assembly.dll|package.nupkg|nugetpackage@1.0.0> [<Assembly.dll|package.nupkg|nugetpackage@1.0.0> ...] <OutputDir>");
 	Console.WriteLine("Example: dotnet run -- path/To/MyFile.dll path/to/OtherFile.dll docs/api");
 	Console.WriteLine("Options:");
 	Console.WriteLine("  --flatten-namespaces                Flatten namespaces in output paths");
@@ -84,6 +85,11 @@ var typeLookup = new Dictionary<string, Type>();
 var allXmlMembers = new List<XElement>();
 var assemblyInputs = new List<AssemblyInput>();
 var assemblyPackageMap = new Dictionary<string, NuGetPackageInfo?>(StringComparer.OrdinalIgnoreCase);
+var dependencyAssemblyPaths = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+var processedDependencyPackages = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+var packageVersionsCache = new Dictionary<string, IReadOnlyList<NuGetVersion>>(StringComparer.OrdinalIgnoreCase);
+
+AssemblyLoadContext.Default.Resolving += ResolveDependencyAssembly;
 
 foreach (var asmArg in assemblyArgs)
 {
@@ -97,12 +103,12 @@ foreach (var asmArg in assemblyArgs)
 foreach (var asmInput in assemblyInputs)
 {
 	var asmPath = asmInput.AssemblyPath;
-var xmlPath = asmInput.XmlDocPath;
+	var xmlPath = asmInput.XmlDocPath;
 
-var asm = Assembly.LoadFrom(asmPath);
-var asmLocation = asm.Location;
-if (!string.IsNullOrEmpty(asmLocation))
-	assemblyPackageMap[asmLocation] = asmInput.Package;
+	var asm = Assembly.LoadFrom(asmPath);
+	var asmLocation = asm.Location;
+	if (!string.IsNullOrEmpty(asmLocation))
+		assemblyPackageMap[asmLocation] = asmInput.Package;
 
 	foreach (var type in asm.GetExportedTypes())
 	{
@@ -233,7 +239,8 @@ foreach (var type in allTypes)
 		if (packageInfo != null)
 		{
 			var packageDisplay = Helpers.EscapePlainText(FormatPackageDisplay(packageInfo));
-			w.WriteLine($"NuGet package: `{packageDisplay}`<br />");
+			var packageUrl = GetNuGetPackageUrl(packageInfo);
+			w.WriteLine($"NuGet package: [{packageDisplay}]({packageUrl})<br />");
 		}
 	}
 	w.WriteLine("</div>");
@@ -376,7 +383,7 @@ string LinkOrCodeType(Type t, Func<Type, string>? getName = null)
 	var display = getName?.Invoke(t) ?? csharpFormatter.FormatTypeName(t);
 	if (typeIdMap.TryGetValue(norm, out var id))
 	{
-		return $"[`{Helpers.EscapePlainText(display)}`](/api/{id})";
+		return $"[`{display}`](/api/{id})";
 	}
 
 	// if it's a system type, link to the microsoft api docs:
@@ -389,9 +396,9 @@ string LinkOrCodeType(Type t, Func<Type, string>? getName = null)
 		}
 
 		var msdnUrl = $"https://learn.microsoft.com/en-us/dotnet/api/{t.FullName?.ToLower().Replace('+', '.').Replace('`', '-')}";
-		return $"[`{Helpers.EscapePlainText(display)}`]({msdnUrl})";
+		return $"[`{display}`]({msdnUrl})";
 	}
-	return $"`{Helpers.EscapePlainText(display)}`";
+	return $"`{display}`";
 }
 
 // ---------------- Member sections ----------------
@@ -1232,6 +1239,16 @@ string FormatPackageDisplay(NuGetPackageInfo package)
 	return $"{package.Id} {package.Version}";
 }
 
+string GetNuGetPackageUrl(NuGetPackageInfo package)
+{
+	var idSegment = Uri.EscapeDataString(package.Id);
+	if (string.IsNullOrEmpty(package.Version))
+		return $"https://www.nuget.org/packages/{idSegment}/";
+
+	var versionSegment = Uri.EscapeDataString(package.Version);
+	return $"https://www.nuget.org/packages/{idSegment}/{versionSegment}/";
+}
+
 // ---------------- Assembly input helpers ----------------
 
 AssemblyInput? ResolveAssemblyInput(string asmArg)
@@ -1287,7 +1304,7 @@ AssemblyInput? CreateAssemblyInputFromNuGetPackage(string packageSpec)
 		return null;
 	}
 
-	var packageVersion = versionSpec ?? GetLatestPackageVersion(packageId);
+	var packageVersion = ResolvePackageVersion(packageId, versionSpec);
 	if (string.IsNullOrEmpty(packageVersion))
 	{
 		Console.Error.WriteLine($"Unable to determine a version for package: {packageId}");
@@ -1301,7 +1318,7 @@ AssemblyInput? CreateAssemblyInputFromNuGetPackage(string packageSpec)
 	return CreateAssemblyInputFromPackage(packagePath, new NuGetPackageInfo(packageId, packageVersion));
 }
 
-AssemblyInput? CreateAssemblyInputFromPackage(string packagePath, NuGetPackageInfo? overridePackageInfo = null)
+AssemblyInput? CreateAssemblyInputFromPackage(string packagePath, NuGetPackageInfo? overridePackageInfo = null, string? preferredFramework = null)
 {
 	if (!File.Exists(packagePath))
 	{
@@ -1309,11 +1326,16 @@ AssemblyInput? CreateAssemblyInputFromPackage(string packagePath, NuGetPackageIn
 		return null;
 	}
 
-	using var packageStream = File.OpenRead(packagePath);
-	using var archive = new ZipArchive(packageStream, ZipArchiveMode.Read, leaveOpen: false);
+	using var archive = ZipFile.OpenRead(packagePath);
 
-	var packageInfo = overridePackageInfo ?? ReadPackageInfo(archive) ?? new NuGetPackageInfo(Path.GetFileNameWithoutExtension(packagePath), "");
-	var packageId = packageInfo.Id;
+	var nuspec = LoadNuspec(archive);
+	if (nuspec == null)
+	{
+		Console.Error.WriteLine($"Unable to read .nuspec from package: {packagePath}");
+		return null;
+	}
+
+	var packageInfo = overridePackageInfo ?? ExtractPackageInfo(nuspec) ?? new NuGetPackageInfo(Path.GetFileNameWithoutExtension(packagePath), "");
 	var candidates = GetPackageAssemblyCandidates(archive);
 	if (candidates.Count == 0)
 	{
@@ -1321,46 +1343,40 @@ AssemblyInput? CreateAssemblyInputFromPackage(string packagePath, NuGetPackageIn
 		return null;
 	}
 
-	var preferredCandidates = candidates
-		.Where(c => string.Equals(Path.GetFileNameWithoutExtension(c.Entry.Name), packageId, StringComparison.OrdinalIgnoreCase))
-		.ToList();
-	if (preferredCandidates.Count == 0)
-		preferredCandidates = candidates;
-
-	var selected = preferredCandidates
-		.OrderBy(c => GetFrameworkPriority(c.NormalizedFramework))
-		.ThenBy(c => c.Entry.FullName, StringComparer.OrdinalIgnoreCase)
-		.First();
+	var selection = SelectFrameworkCandidates(candidates, packageInfo.Id, preferredFramework);
 
 	var tempDir = Path.Combine(Path.GetTempPath(), "GenerateApiDocs", Guid.NewGuid().ToString("n"));
 	Directory.CreateDirectory(tempDir);
 
-	var asmPath = Path.Combine(tempDir, selected.Entry.Name);
-	ExtractArchiveEntry(selected.Entry, asmPath);
-
-	string? xmlPath = null;
-	var xmlEntry = FindXmlDocEntry(archive, selected.Entry);
-	if (xmlEntry != null)
+	var extractionResult = ExtractFrameworkAssemblies(archive, selection, tempDir, packageInfo);
+	if (string.IsNullOrEmpty(extractionResult.PrimaryAssemblyPath))
 	{
-		xmlPath = Path.Combine(tempDir, xmlEntry.Name);
-		ExtractArchiveEntry(xmlEntry, xmlPath);
-	}
-	else
-	{
-		Console.WriteLine($"Warning: XML doc file not found for {selected.Entry.FullName} inside package: {packagePath}");
+		Console.Error.WriteLine($"Unable to extract primary assembly for package: {packageInfo.Id}");
+		return null;
 	}
 
-	return new AssemblyInput(asmPath, xmlPath, packageInfo);
+	if (string.IsNullOrEmpty(extractionResult.PrimaryXmlPath))
+	{
+		Console.WriteLine($"Warning: XML doc file not found for {selection.PrimaryCandidate.Entry.FullName} inside package: {packagePath}");
+	}
+
+	EnsurePackageDependencies(nuspec, selection.NormalizedFramework, packageInfo);
+
+	return new AssemblyInput(extractionResult.PrimaryAssemblyPath, extractionResult.PrimaryXmlPath, packageInfo);
 }
 
-NuGetPackageInfo? ReadPackageInfo(ZipArchive archive)
+XDocument? LoadNuspec(ZipArchive archive)
 {
 	var nuspecEntry = archive.Entries.FirstOrDefault(e => e.FullName.EndsWith(".nuspec", StringComparison.OrdinalIgnoreCase));
 	if (nuspecEntry == null)
 		return null;
 
 	using var nuspecStream = nuspecEntry.Open();
-	var nuspec = XDocument.Load(nuspecStream);
+	return XDocument.Load(nuspecStream);
+}
+
+NuGetPackageInfo? ExtractPackageInfo(XDocument nuspec)
+{
 	var root = nuspec.Root;
 	if (root == null)
 		return null;
@@ -1396,6 +1412,192 @@ List<NuGetAssemblyCandidate> GetPackageAssemblyCandidates(ZipArchive archive)
 		candidates.Add(new NuGetAssemblyCandidate(entry, framework, NormalizeFramework(framework)));
 	}
 	return candidates;
+}
+
+FrameworkSelection SelectFrameworkCandidates(List<NuGetAssemblyCandidate> candidates, string packageId, string? preferredFramework)
+{
+	if (candidates.Count == 0)
+		throw new InvalidOperationException("No assembly candidates available.");
+
+	IEnumerable<NuGetAssemblyCandidate> filtered = candidates;
+	if (!string.IsNullOrEmpty(preferredFramework))
+	{
+		var preferredMatches = candidates
+			.Where(c => string.Equals(c.NormalizedFramework, preferredFramework, StringComparison.OrdinalIgnoreCase))
+			.ToList();
+		if (preferredMatches.Count > 0)
+			filtered = preferredMatches;
+	}
+
+	var ordered = filtered
+		.OrderBy(c => GetFrameworkPriority(c.NormalizedFramework))
+		.ThenBy(c => c.Entry.FullName, StringComparer.OrdinalIgnoreCase)
+		.ToList();
+
+	var selectedFramework = ordered.First().Framework;
+	var normalizedFramework = ordered.First().NormalizedFramework;
+	var frameworkCandidates = ordered
+		.Where(c => string.Equals(c.Framework, selectedFramework, StringComparison.OrdinalIgnoreCase))
+		.ToList();
+
+	var primaryCandidate = frameworkCandidates
+		.FirstOrDefault(c => string.Equals(Path.GetFileNameWithoutExtension(c.Entry.Name), packageId, StringComparison.OrdinalIgnoreCase))
+		?? frameworkCandidates.First();
+
+	return new FrameworkSelection(selectedFramework, normalizedFramework, frameworkCandidates, primaryCandidate);
+}
+
+FrameworkExtractionResult ExtractFrameworkAssemblies(ZipArchive archive, FrameworkSelection selection, string destinationDir, NuGetPackageInfo packageInfo, bool logMissingXmlForPrimary = true)
+{
+	string? primaryAssemblyPath = null;
+	string? primaryXmlPath = null;
+
+	foreach (var candidate in selection.Candidates)
+	{
+		var assemblyFileName = Path.GetFileName(candidate.Entry.Name);
+		var asmPath = Path.Combine(destinationDir, assemblyFileName);
+		ExtractArchiveEntry(candidate.Entry, asmPath);
+		RegisterDependencyAssembly(asmPath);
+
+		if (candidate.Entry == selection.PrimaryCandidate.Entry)
+			primaryAssemblyPath = asmPath;
+
+		var xmlEntry = FindXmlDocEntry(archive, candidate.Entry);
+		if (xmlEntry != null)
+		{
+			var xmlFileName = Path.GetFileName(xmlEntry.Name);
+			var xmlPath = Path.Combine(destinationDir, xmlFileName);
+			ExtractArchiveEntry(xmlEntry, xmlPath);
+			if (candidate.Entry == selection.PrimaryCandidate.Entry)
+				primaryXmlPath = xmlPath;
+		}
+		else if (candidate.Entry == selection.PrimaryCandidate.Entry && logMissingXmlForPrimary)
+		{
+			Console.WriteLine($"Warning: XML doc file not found for {candidate.Entry.FullName} inside package: {packageInfo.Id}");
+		}
+	}
+
+	return new FrameworkExtractionResult(primaryAssemblyPath, primaryXmlPath);
+}
+
+void EnsurePackageDependencies(XDocument nuspec, string normalizedFramework, NuGetPackageInfo packageInfo)
+{
+	foreach (var dependency in GetDependenciesForFramework(nuspec, normalizedFramework))
+	{
+		if (IsSystemPackageId(dependency.Id))
+			continue;
+
+		var version = ResolvePackageVersion(dependency.Id, dependency.VersionSpec);
+		if (string.IsNullOrEmpty(version))
+		{
+			Console.WriteLine($"Warning: Unable to resolve version for dependency {dependency.Id} of {packageInfo.Id}.");
+			continue;
+		}
+
+		ProcessDependencyPackage(dependency.Id, version, normalizedFramework);
+	}
+}
+
+void ProcessDependencyPackage(string packageId, string version, string? preferredFramework)
+{
+	var packageKey = $"{packageId}@{version}";
+	if (!processedDependencyPackages.Add(packageKey))
+		return;
+
+	var packagePath = DownloadNuGetPackage(packageId, version);
+	if (packagePath == null)
+		return;
+
+	using var archive = ZipFile.OpenRead(packagePath);
+	var nuspec = LoadNuspec(archive);
+	var candidates = GetPackageAssemblyCandidates(archive);
+	if (candidates.Count == 0)
+		return;
+
+	var selection = SelectFrameworkCandidates(candidates, packageId, preferredFramework);
+	var extractionRoot = Path.Combine(Path.GetTempPath(), "GenerateApiDocs", "deps", SanitizeFileName($"{packageId}.{version}"), selection.Framework);
+	Directory.CreateDirectory(extractionRoot);
+	var packageInfo = new NuGetPackageInfo(packageId, version);
+	ExtractFrameworkAssemblies(archive, selection, extractionRoot, packageInfo, logMissingXmlForPrimary: false);
+
+	if (nuspec != null)
+	{
+		EnsurePackageDependencies(nuspec, selection.NormalizedFramework, packageInfo);
+	}
+}
+
+IEnumerable<NuGetDependency> GetDependenciesForFramework(XDocument nuspec, string normalizedFramework)
+{
+	var root = nuspec.Root;
+	if (root == null)
+		yield break;
+
+	var ns = root.GetDefaultNamespace();
+	var metadata = root.Element(ns + "metadata") ?? root.Element("metadata");
+	if (metadata == null)
+		yield break;
+
+	var dependenciesElement = metadata.Element(ns + "dependencies") ?? metadata.Element("dependencies");
+	if (dependenciesElement == null)
+		yield break;
+
+	XElement? GetGroupElement()
+	{
+		var groups = dependenciesElement
+			.Elements(ns + "group").Concat(dependenciesElement.Elements("group"))
+			.ToList();
+
+		if (groups.Count == 0)
+			return null;
+
+		if (!string.IsNullOrEmpty(normalizedFramework))
+		{
+			var match = groups.FirstOrDefault(g =>
+			{
+				var target = g.Attribute("targetFramework")?.Value;
+				if (string.IsNullOrEmpty(target))
+					return false;
+				return string.Equals(NormalizeFramework(target), normalizedFramework, StringComparison.OrdinalIgnoreCase);
+			});
+			if (match != null)
+				return match;
+		}
+
+		var neutral = groups.FirstOrDefault(g => string.IsNullOrEmpty(g.Attribute("targetFramework")?.Value));
+		return neutral ?? groups.First();
+	}
+
+	var group = GetGroupElement();
+	if (group != null)
+	{
+		foreach (var dep in group.Elements(ns + "dependency").Concat(group.Elements("dependency")))
+		{
+			var id = dep.Attribute("id")?.Value;
+			if (string.IsNullOrEmpty(id))
+				continue;
+			var version = dep.Attribute("version")?.Value;
+			yield return new NuGetDependency(id, version);
+		}
+		yield break;
+	}
+
+	foreach (var dep in dependenciesElement.Elements(ns + "dependency").Concat(dependenciesElement.Elements("dependency")))
+	{
+		var id = dep.Attribute("id")?.Value;
+		if (string.IsNullOrEmpty(id))
+			continue;
+		var version = dep.Attribute("version")?.Value;
+		yield return new NuGetDependency(id, version);
+	}
+}
+
+bool IsSystemPackageId(string packageId)
+{
+	return packageId.StartsWith("System.", StringComparison.OrdinalIgnoreCase)
+		|| packageId.Equals("System", StringComparison.OrdinalIgnoreCase)
+		|| packageId.StartsWith("Microsoft.NETCore", StringComparison.OrdinalIgnoreCase)
+		|| packageId.StartsWith("Microsoft.Win32", StringComparison.OrdinalIgnoreCase)
+		|| packageId.Equals("NETStandard.Library", StringComparison.OrdinalIgnoreCase);
 }
 
 string? GetFrameworkFromEntry(string entryFullName)
@@ -1507,57 +1709,6 @@ bool TryParsePackageSpec(string packageSpec, out string packageId, out string? v
 	return true;
 }
 
-string? GetLatestPackageVersion(string packageId)
-{
-	try
-	{
-		var idLower = packageId.ToLowerInvariant();
-		var indexUrl = $"{NuGetFlatContainerBaseUrl}{idLower}/index.json";
-		using var response = httpClient.GetAsync(indexUrl).GetAwaiter().GetResult();
-		if (!response.IsSuccessStatusCode)
-		{
-			Console.Error.WriteLine($"Failed to query versions for {packageId} (HTTP {(int)response.StatusCode}).");
-			return null;
-		}
-
-		using var stream = response.Content.ReadAsStream();
-		using var doc = JsonDocument.Parse(stream);
-		if (!doc.RootElement.TryGetProperty("versions", out var versions))
-		{
-			Console.Error.WriteLine($"NuGet version index missing 'versions' array for {packageId}.");
-			return null;
-		}
-
-		string? latest = null;
-		string? latestStable = null;
-
-		foreach (var versionElement in versions.EnumerateArray())
-		{
-			var version = versionElement.GetString();
-			if (string.IsNullOrWhiteSpace(version))
-				continue;
-
-			latest = version;
-			if (!IsPrereleaseVersion(version))
-			{
-				latestStable = version;
-			}
-		}
-
-		return latestStable ?? latest;
-	}
-	catch (HttpRequestException ex)
-	{
-		Console.Error.WriteLine($"Error querying NuGet versions for {packageId}: {ex.Message}");
-		return null;
-	}
-	catch (JsonException ex)
-	{
-		Console.Error.WriteLine($"Error parsing NuGet version index for {packageId}: {ex.Message}");
-		return null;
-	}
-}
-
 string? DownloadNuGetPackage(string packageId, string version)
 {
 	try
@@ -1600,6 +1751,82 @@ string? DownloadNuGetPackage(string packageId, string version)
 	}
 }
 
+string? ResolvePackageVersion(string packageId, string? versionSpec)
+{
+	if (string.IsNullOrWhiteSpace(versionSpec))
+		return GetPackageVersion(packageId, range: null);
+
+	if (VersionRange.TryParse(versionSpec, out var range))
+		return GetPackageVersion(packageId, range);
+
+	return versionSpec;
+}
+
+string? GetPackageVersion(string packageId, VersionRange? range)
+{
+	var versions = GetAllPackageVersions(packageId);
+	if (versions.Count == 0)
+		return null;
+
+	IEnumerable<NuGetVersion> filtered = versions;
+	if (range != null)
+		filtered = versions.Where(range.Satisfies);
+
+	var candidates = filtered.ToList();
+	if (candidates.Count == 0)
+		return null;
+
+	var stableCandidates = candidates.Where(v => !v.IsPrerelease).ToList();
+	var bestList = stableCandidates.Count > 0 ? stableCandidates : candidates;
+	var best = bestList.Max();
+	return best?.ToNormalizedString();
+}
+
+IReadOnlyList<NuGetVersion> GetAllPackageVersions(string packageId)
+{
+	if (packageVersionsCache.TryGetValue(packageId, out var cached))
+		return cached;
+
+	try
+	{
+		var idLower = packageId.ToLowerInvariant();
+		var indexUrl = $"{NuGetFlatContainerBaseUrl}{idLower}/index.json";
+		using var response = httpClient.GetAsync(indexUrl).GetAwaiter().GetResult();
+		if (!response.IsSuccessStatusCode)
+		{
+			Console.Error.WriteLine($"Failed to query versions for {packageId} (HTTP {(int)response.StatusCode}).");
+			return Array.Empty<NuGetVersion>();
+		}
+
+		using var stream = response.Content.ReadAsStream();
+		using var doc = JsonDocument.Parse(stream);
+		if (!doc.RootElement.TryGetProperty("versions", out var versionsElement))
+		{
+			Console.Error.WriteLine($"NuGet version index missing 'versions' array for {packageId}.");
+			return Array.Empty<NuGetVersion>();
+		}
+
+		var versions = new List<NuGetVersion>();
+		foreach (var versionValue in versionsElement.EnumerateArray())
+		{
+			var versionString = versionValue.GetString();
+			if (string.IsNullOrWhiteSpace(versionString))
+				continue;
+			if (NuGetVersion.TryParse(versionString, out var nugetVersion))
+				versions.Add(nugetVersion);
+		}
+
+		versions.Sort();
+		packageVersionsCache[packageId] = versions;
+		return versions;
+	}
+	catch (Exception ex) when (ex is HttpRequestException || ex is JsonException)
+	{
+		Console.Error.WriteLine($"Error retrieving versions for {packageId}: {ex.Message}");
+		return Array.Empty<NuGetVersion>();
+	}
+}
+
 bool LooksLikePackageId(string value)
 {
 	if (string.IsNullOrWhiteSpace(value))
@@ -1622,13 +1849,6 @@ bool LooksLikePackageId(string value)
 	return true;
 }
 
-bool IsPrereleaseVersion(string version)
-{
-	if (string.IsNullOrWhiteSpace(version))
-		return false;
-	return version.Contains('-', StringComparison.Ordinal);
-}
-
 string SanitizeFileName(string value)
 {
 	var invalidChars = Path.GetInvalidFileNameChars();
@@ -1638,6 +1858,46 @@ string SanitizeFileName(string value)
 		builder.Append(invalidChars.Contains(ch) ? '_' : ch);
 	}
 	return builder.ToString();
+}
+
+void RegisterDependencyAssembly(string assemblyPath)
+{
+	try
+	{
+		var assemblyName = AssemblyName.GetAssemblyName(assemblyPath);
+		var simpleName = assemblyName.Name;
+		if (string.IsNullOrEmpty(simpleName))
+			return;
+
+		if (!dependencyAssemblyPaths.ContainsKey(simpleName))
+		{
+			dependencyAssemblyPaths[simpleName] = assemblyPath;
+		}
+	}
+	catch (Exception ex) when (ex is BadImageFormatException || ex is FileLoadException || ex is IOException)
+	{
+		// Ignore native or invalid assemblies.
+	}
+}
+
+Assembly? ResolveDependencyAssembly(AssemblyLoadContext context, AssemblyName assemblyName)
+{
+	if (assemblyName.Name == null)
+		return null;
+
+	if (dependencyAssemblyPaths.TryGetValue(assemblyName.Name, out var path) && File.Exists(path))
+	{
+		try
+		{
+			return context.LoadFromAssemblyPath(path);
+		}
+		catch (FileLoadException)
+		{
+			return null;
+		}
+	}
+
+	return null;
 }
 
 // ---------------- misc helpers ----------------
@@ -1704,3 +1964,9 @@ record class AssemblyInput(string AssemblyPath, string? XmlDocPath, NuGetPackage
 record class NuGetAssemblyCandidate(ZipArchiveEntry Entry, string Framework, string NormalizedFramework);
 
 record class NuGetPackageInfo(string Id, string Version);
+
+record struct FrameworkSelection(string Framework, string NormalizedFramework, List<NuGetAssemblyCandidate> Candidates, NuGetAssemblyCandidate PrimaryCandidate);
+
+record struct FrameworkExtractionResult(string? PrimaryAssemblyPath, string? PrimaryXmlPath);
+
+record struct NuGetDependency(string Id, string? VersionSpec);

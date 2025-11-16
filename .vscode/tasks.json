@@ -2,9 +2,9 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "serve",
+            "label": "start",
             "type": "shell",
-            "command": "npm run serve",
+            "command": "npm run build-api && npm run start",
             "problemMatcher": []
         },
         {

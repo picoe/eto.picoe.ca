@@ -185,9 +185,9 @@ const config = {
       /** @type {import('@docusaurus/plugin-content-docs').Options} */
       ({
         id: 'api', // Unique ID for this plugin instance
-        path: 'artifacts/apidocs', // Relative path to the separate Markdown directory
+        path: './artifacts/apidocs', // Relative path to the separate Markdown directory
         routeBasePath: 'api', // Base URL path for these documents
-        sidebarPath: require.resolve('artifacts/apidocs/sidebars-api.cjs'),
+        sidebarPath: require.resolve('./artifacts/apidocs/sidebars-api.cjs'),
       }),
     ],
   ],

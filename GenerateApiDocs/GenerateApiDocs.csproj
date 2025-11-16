@@ -10,4 +10,8 @@
     <UserSecretsId>GenerateApiDocs-581c4a5a4377e11620f9aab125c0039f08b63bf63ca75de9f876fd670fa72dbb</UserSecretsId>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="NuGet.Versioning" Version="6.9.1" />
+  </ItemGroup>
+
 </Project>

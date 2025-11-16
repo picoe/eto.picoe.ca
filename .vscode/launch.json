@@ -14,6 +14,7 @@
                 "Eto.Forms@2.10.2",
                 "Eto.Serialization.Xaml@2.10.2",
                 "Eto.Serialization.Json@2.10.2",
+                "RhinoCommon@9.0.25315.12305-wip",
                 "artifacts/apidocs"
             ],
         }

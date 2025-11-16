@@ -24,7 +24,7 @@ dotnet run -- \
 
 You can also supply `.nupkg` files instead of direct `.dll` paths. The tool will extract the matching assembly (preferring the DLL whose name matches the package ID) and its XML docs from the package's `lib/` folder before generating the pages.
 
-If you don't have the package locally, pass the NuGet package ID (optionally in the form `PackageId@1.2.3`). The CLI will download the package from nuget.org on the fly and use that assembly + XML combo.
+If you don't have the package locally, pass the NuGet package ID (optionally in the form `PackageId@1.2.3`). The CLI will download the package from nuget.org on the fly, pull in its non-system NuGet dependencies, and use those assemblies + XML docs so referenced types can be resolved.
 
 ### Options
 
