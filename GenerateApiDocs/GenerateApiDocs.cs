@@ -169,8 +169,7 @@ foreach (var type in allTypes)
 }
 
 // For sidebar
-var sidebarMap = new SortedDictionary<string, List<SidebarEntry>>(StringComparer.Ordinal);
-var namespaceSlugMap = new Dictionary<string, string>(StringComparer.Ordinal);
+var sidebarWriter = new GenerateApiDocs.SidebarWriter();
 
 // Generate one page per type
 foreach (var type in allTypes)
@@ -193,19 +192,7 @@ foreach (var type in allTypes)
 
 	var docId = typeIdMap[XmlDocumentation.NormalizeTypeName(type)];
 
-	if (!sidebarMap.TryGetValue(nsKey, out var list))
-	{
-		list = new List<SidebarEntry>();
-		sidebarMap[nsKey] = list;
-	}
-	var sidebarEntry = new SidebarEntry(docId, GetDisplayTypeName(type), splitMembers ? new List<SectionEntry>() : null);
-	list.Add(sidebarEntry);
-
-	if (!namespaceSlugMap.ContainsKey(nsKey))
-	{
-		var slug = string.IsNullOrEmpty(nsSlugPath) ? "/global" : "/" + nsSlugPath;
-		namespaceSlugMap[nsKey] = slug;
-	}
+	var sidebarEntry = sidebarWriter.AddType(nsKey, nsSlugPath, docId, GetDisplayTypeName(type), splitMembers);
 
 	using var w = new StreamWriter(filePath);
 
@@ -213,9 +200,9 @@ foreach (var type in allTypes)
 
 	// --- frontmatter ---
 	w.WriteLine("---");
-	w.WriteLine($"id: {EscapeYaml(typeSlug)}");
-	w.WriteLine($"title: {EscapeYaml(GetDisplayTypeName(type))}");
-	w.WriteLine($"sidebar_label: {EscapeYaml(GetDisplayTypeName(type))}");
+	w.WriteLine($"id: {Helpers.EscapeYaml(typeSlug)}");
+	w.WriteLine($"title: {Helpers.EscapeYaml(GetDisplayTypeName(type))}");
+	w.WriteLine($"sidebar_label: {Helpers.EscapeYaml(GetDisplayTypeName(type))}");
 	w.WriteLine("---");
 	w.WriteLine();
 
@@ -286,9 +273,9 @@ foreach (var type in allTypes)
 	}
 }
 
-WriteApiIndex(outputRoot, sidebarMap, namespaceSlugMap);
+sidebarWriter.WriteApiIndex(outputRoot);
 
-WriteSidebar(outputRoot, sidebarMap, namespaceSlugMap);
+sidebarWriter.WriteSidebar(outputRoot);
 Console.WriteLine($"Generated {allTypes.Count} type pages from {assemblyInputs.Count} assemblies into: {outputRoot}");
 return 0;
 
@@ -990,9 +977,9 @@ void WriteMemberDoc(Type type, TypeOutputContext context, string memberSlug, str
 	var filePath = Path.Combine(context.FileDirectory, $"{docId}.mdx");
 	using var w = new StreamWriter(filePath);
 	w.WriteLine("---");
-	w.WriteLine($"id: {EscapeYaml(docId)}");
-	w.WriteLine($"title: {EscapeYaml(title)}");
-	w.WriteLine($"sidebar_label: {EscapeYaml(sidebarLabel)}");
+	w.WriteLine($"id: {Helpers.EscapeYaml(docId)}");
+	w.WriteLine($"title: {Helpers.EscapeYaml(title)}");
+	w.WriteLine($"sidebar_label: {Helpers.EscapeYaml(sidebarLabel)}");
 	w.WriteLine("---");
 	w.WriteLine();
 	WriteTabsImports(w);
@@ -1033,131 +1020,6 @@ void WriteMemberOverview(StreamWriter w, TypeOutputContext context)
 		}
 		w.WriteLine();
 	}
-}
-
-static void WriteSidebar(string outputRoot, SortedDictionary<string, List<SidebarEntry>> sidebarMap, Dictionary<string, string> namespaceSlugMap)
-{
-	// Write sidebar
-	var sidebarPath = Path.Combine(outputRoot, "sidebars-api.cjs");
-	using (var sw = new StreamWriter(sidebarPath))
-	{
-		sw.WriteLine("module.exports = {");
-		sw.WriteLine("  apiSidebar: [");
-		sw.WriteLine("    { type: 'doc', id: 'index', label: 'Namespaces' },");
-		sw.WriteLine();
-
-		bool firstNs = true;
-		foreach (var kvp in sidebarMap)
-		{
-			if (!firstNs) sw.WriteLine(",");
-			firstNs = false;
-
-			var nsLabel = kvp.Key == "(Global)" ? "Global" : kvp.Key;
-
-			sw.WriteLine("    {");
-			sw.WriteLine("      type: 'category',");
-			sw.WriteLine($"      label: {ToJsString(nsLabel)},");
-			if (namespaceSlugMap.TryGetValue(kvp.Key, out var slug))
-			{
-				sw.WriteLine("      link: {");
-				sw.WriteLine("        type: 'generated-index',");
-				sw.WriteLine($"        slug: {ToJsString(slug)},");
-				sw.WriteLine($"        title: {ToJsString(nsLabel + " Namespace")},");
-				sw.WriteLine("      },");
-			}
-			sw.WriteLine("      items: [");
-			for (int i = 0; i < kvp.Value.Count; i++)
-			{
-				var entry = kvp.Value[i];
-				if (entry.Sections is { Count: > 0 })
-				{
-					sw.WriteLine("        {");
-					sw.WriteLine("          type: 'category',");
-					sw.WriteLine($"          label: {ToJsString(entry.Label)},");
-					sw.WriteLine("          link: {");
-					sw.WriteLine("            type: 'doc',");
-					sw.WriteLine($"            id: {ToJsString(entry.DocId)},");
-					sw.WriteLine("          },");
-					sw.WriteLine("          items: [");
-					for (int j = 0; j < entry.Sections.Count; j++)
-					{
-						var section = entry.Sections[j];
-						sw.WriteLine("            {");
-						sw.WriteLine("              type: 'category',");
-						sw.WriteLine($"              label: {ToJsString(section.Label)},");
-						sw.WriteLine("              items: [");
-						for (int k = 0; k < section.DocIds.Count; k++)
-						{
-							var childId = section.DocIds[k];
-							sw.Write($"                {ToJsString(childId)}");
-							if (k < section.DocIds.Count - 1)
-								sw.Write(",");
-							sw.WriteLine();
-						}
-						sw.WriteLine("              ],");
-						sw.Write("            }");
-						if (j < entry.Sections.Count - 1)
-							sw.Write(",");
-						sw.WriteLine();
-					}
-					sw.WriteLine("          ],");
-					sw.Write("        }");
-				}
-				else
-				{
-					sw.Write($"        {ToJsString(entry.DocId)}");
-				}
-
-				if (i < kvp.Value.Count - 1)
-					sw.Write(",");
-				sw.WriteLine();
-			}
-			sw.WriteLine("      ],");
-			sw.WriteLine("    }");
-		}
-
-		sw.WriteLine();
-		sw.WriteLine("  ],");
-		sw.WriteLine("};");
-	}
-	Console.WriteLine($"Generated sidebar: {sidebarPath}");
-}
-
-static void WriteApiIndex(string outputRoot, SortedDictionary<string, List<SidebarEntry>> sidebarMap, Dictionary<string, string> namespaceSlugMap)
-{
-	var indexPath = Path.Combine(outputRoot, "index.mdx");
-	using var w = new StreamWriter(indexPath);
-
-	w.WriteLine("---");
-	w.WriteLine("id: index");
-	w.WriteLine("title: API Reference");
-	w.WriteLine("slug: /");
-	w.WriteLine("sidebar_label: Namespaces");
-	w.WriteLine("---");
-	w.WriteLine();
-	w.WriteLine("# API Reference");
-	w.WriteLine();
-	w.WriteLine("Browse the namespaces below to explore the available types.");
-	w.WriteLine();
-	w.WriteLine("## Namespaces");
-	w.WriteLine();
-
-	foreach (var kvp in sidebarMap)
-	{
-		var nsLabel = kvp.Key == "(Global)" ? "Global" : kvp.Key;
-		if (namespaceSlugMap.TryGetValue(kvp.Key, out var slug) && !string.IsNullOrEmpty(slug))
-		{
-			w.WriteLine($"- [{nsLabel}](/api{slug})");
-		}
-		else
-		{
-			w.WriteLine($"- {nsLabel}");
-		}
-	}
-
-	w.WriteLine();
-
-	Console.WriteLine($"Generated API index: {indexPath}");
 }
 
 
@@ -1278,10 +1140,6 @@ string GetNuGetPackageUrl(NuGetPackageInfo package)
 
 // ---------------- misc helpers ----------------
 
-static string EscapeYaml(string value) => value.Replace("\"", "\\\"");
-
-static string ToJsString(string value)
-	=> "\"" + value.Replace("\\", "\\\\").Replace("\"", "\\\"") + "\"";
 
 void WriteFieldContent(StreamWriter w, Type type, FieldInfo field, XmlDocumentation xmlDocs, Dictionary<string, string> typeIdMap)
 {
@@ -1331,17 +1189,5 @@ record class SidebarEntry
 record class SectionEntry(string Label, List<string> DocIds);
 
 record class MemberTableEntry(string Section, string Label, string DocId, string Description);
-
-record class AssemblyInput(string AssemblyPath, string? XmlDocPath, NuGetPackageInfo? Package = null);
-
-record class NuGetAssemblyCandidate(ZipArchiveEntry Entry, string Framework, string NormalizedFramework);
-
-record class NuGetPackageInfo(string Id, string Version);
-
-record struct FrameworkSelection(string Framework, string NormalizedFramework, List<NuGetAssemblyCandidate> Candidates, NuGetAssemblyCandidate PrimaryCandidate);
-
-record struct FrameworkExtractionResult(string? PrimaryAssemblyPath, string? PrimaryXmlPath);
-
-record struct NuGetDependency(string Id, string? VersionSpec);
 
 record struct ObsoleteInfo(string? Message, bool IsError);

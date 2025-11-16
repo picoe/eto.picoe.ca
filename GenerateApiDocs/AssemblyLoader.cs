@@ -12,6 +12,20 @@ using System.Text.Json;
 using System.Xml.Linq;
 using NuGet.Versioning;
 
+namespace GenerateApiDocs;
+
+record class AssemblyInput(string AssemblyPath, string? XmlDocPath, NuGetPackageInfo? Package = null);
+
+record class NuGetAssemblyCandidate(ZipArchiveEntry Entry, string Framework, string NormalizedFramework);
+
+record class NuGetPackageInfo(string Id, string Version);
+
+record struct FrameworkSelection(string Framework, string NormalizedFramework, List<NuGetAssemblyCandidate> Candidates, NuGetAssemblyCandidate PrimaryCandidate);
+
+record struct FrameworkExtractionResult(string? PrimaryAssemblyPath, string? PrimaryXmlPath);
+
+record struct NuGetDependency(string Id, string? VersionSpec);
+
 sealed class AssemblyLoader : IDisposable
 {
 	private const string NuGetFlatContainerBaseUrl = "https://api.nuget.org/v3-flatcontainer/";
@@ -76,10 +90,10 @@ sealed class AssemblyLoader : IDisposable
 		return true;
 	}
 
-public Assembly LoadAssembly(AssemblyInput assemblyInput)
-{
-	return LoadMetadataAssembly(assemblyInput.AssemblyPath);
-}
+	public Assembly LoadAssembly(AssemblyInput assemblyInput)
+	{
+		return LoadMetadataAssembly(assemblyInput.AssemblyPath);
+	}
 
 	private AssemblyInput? ResolveAssemblyInput(string asmArg)
 	{
@@ -115,15 +129,15 @@ public Assembly LoadAssembly(AssemblyInput assemblyInput)
 			return null;
 		}
 
-	if (xmlPath == null || !File.Exists(xmlPath))
-	{
-		Console.WriteLine($"Warning: XML doc file not found: {xmlPath}");
-		xmlPath = null;
-	}
+		if (xmlPath == null || !File.Exists(xmlPath))
+		{
+			Console.WriteLine($"Warning: XML doc file not found: {xmlPath}");
+			xmlPath = null;
+		}
 
-	RegisterMetadataReference(asmPath);
-	return new AssemblyInput(asmPath, xmlPath);
-}
+		RegisterMetadataReference(asmPath);
+		return new AssemblyInput(asmPath, xmlPath);
+	}
 
 	private AssemblyInput? CreateAssemblyInputFromNuGetPackage(string packageSpec)
 	{

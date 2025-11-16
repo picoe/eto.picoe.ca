@@ -4,6 +4,11 @@ namespace GenerateApiDocs;
 
 static class Helpers
 {
+	public static string EscapeYaml(string value) => value.Replace("\"", "\\\"");
+
+	public static string ToJsString(string value)
+		=> "\"" + value.Replace("\\", "\\\\").Replace("\"", "\\\"") + "\"";
+
 	static string[] MdxSpecialCharacters() => new[] { "\\", "<", ">", "{", "}", "[", "]", "(", ")", "*", "_", "#", "`", "|", "!", "-", "+", ".", "?", "^", "$", "%", "&", "~", "=", ":", ";", "\"", "'" };
 
 	public static string EscapePlainText(string text)
