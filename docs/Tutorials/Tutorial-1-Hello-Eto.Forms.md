@@ -1,4 +1,4 @@
-# Tutorial 1 Hello Eto.Forms
+# Tutorial 1 - Hello Eto.Forms
 
 This tutorial will teach you how to create a simple ["Hello World"](http://en.wikipedia.org/wiki/Hello_world_program) application using Eto.Forms
 
@@ -6,33 +6,33 @@ This tutorial will teach you how to create a simple ["Hello World"](http://en.wi
 
 2. Create a new class for your main form:
 
-	```csharp
-	class MyForm : Eto.Forms.Form
-	{
-		public MyForm()
-		{
-			// sets the client (inner) size of the window for your content
-			this.ClientSize = new Eto.Drawing.Size(600, 400);
+  ```csharp
+  class MyForm : Eto.Forms.Form
+  {
+    public MyForm()
+    {
+      // sets the client (inner) size of the window for your content
+      this.ClientSize = new Eto.Drawing.Size(600, 400);
 
-			this.Title = "Hello, Eto.Forms";
-		}
-	}
-	```
+      this.Title = "Hello, Eto.Forms";
+    }
+  }
+  ```
 
 3. In your **Main()** method, create an `Application` object and run using your form (if you haven't used one of the project templates already):
 
-	```csharp
-	using System;
-	
-	class Startup
-	{
-		[STAThread]
-		public static void Main(string[] args)
-		{
-			new Eto.Forms.Application().Run(new MyForm());
-		}
-	}
-	```
+  ```csharp
+  using System;
+  
+  class Startup
+  {
+    [STAThread]
+    public static void Main(string[] args)
+    {
+      new Eto.Forms.Application().Run(new MyForm());
+    }
+  }
+  ```
 
 - [C# Source](https://github.com/picoe/Eto/blob/develop/samples/Tutorials/CSharp/Tutorial1/Main.cs)
 - [F# Source](https://github.com/picoe/Eto/blob/develop/samples/Tutorials/FSharp/Tutorial1/Program.fs)

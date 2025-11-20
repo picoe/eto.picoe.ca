@@ -87,38 +87,15 @@ sealed class CSharpLanguageFormatter : LanguageFormatter
 	{
 		return $"event {FormatTypeName(eventInfo.EventHandlerType!)} {eventInfo.Name};";
 	}
-
+	
 	public override string FormatTypeName(Type type)
 	{
-		var aliases = new Dictionary<Type, string>
-		{
-			{ typeof(bool), "bool" },
-			{ typeof(byte), "byte" },
-			{ typeof(sbyte), "sbyte" },
-			{ typeof(char), "char" },
-			{ typeof(decimal), "decimal" },
-			{ typeof(double), "double" },
-			{ typeof(float), "float" },
-			{ typeof(int), "int" },
-			{ typeof(uint), "uint" },
-			{ typeof(long), "long" },
-			{ typeof(ulong), "ulong" },
-			{ typeof(short), "short" },
-			{ typeof(ushort), "ushort" },
-			{ typeof(object), "object" },
-			{ typeof(string), "string" },
-			{ typeof(void), "void" }
-		};
-
-		if (aliases.TryGetValue(type, out var alias))
-			return alias;
-
 		if (type.IsByRef) type = type.GetElementType()!;
 		if (type.IsArray) return FormatTypeName(type.GetElementType()!) + "[]";
 
 		if (Nullable.GetUnderlyingType(type) is Type underlying)
 			return FormatTypeName(underlying) + "?";
-
+			
 		if (type.IsGenericParameter)
 			return type.Name;
 
@@ -130,13 +107,38 @@ sealed class CSharpLanguageFormatter : LanguageFormatter
 			if (tick >= 0) name = name.Substring(0, tick);
 
 			var args = type.GetGenericArguments().Select(FormatTypeName);
+
+			if (type.GetGenericTypeDefinition().FullName == "System.Nullable`1")
+			{
+				return $"{args.First()}?";
+			}
+
 			return $"{name}<{string.Join(", ", args)}>";
 		}
 
 		if (type.IsNested)
 			return $"{FormatTypeName(type.DeclaringType!)}.{type.Name}";
-
-		return type.Name.Contains('`') ? type.Name[..type.Name.IndexOf('`')] : type.Name;
+			
+		return type.FullName switch
+		{
+			"System.Boolean" => "bool",
+			"System.Byte" => "byte",
+			"System.SByte" => "sbyte",
+			"System.Char" => "char",
+			"System.Decimal" => "decimal",
+			"System.Double" => "double",
+			"System.Single" => "float",
+			"System.Int32" => "int",
+			"System.UInt32" => "uint",
+			"System.Int64" => "long",
+			"System.UInt64" => "ulong",
+			"System.Int16" => "short",
+			"System.UInt16" => "ushort",
+			"System.Object" => "object",
+			"System.String" => "string",
+			"System.Void" => "void",
+			_ => type.Name
+		};
 	}
 
 	string FormatDefaultValue(ParameterInfo parameter)

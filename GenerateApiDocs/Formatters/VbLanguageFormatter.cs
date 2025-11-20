@@ -86,7 +86,7 @@ sealed class VbLanguageFormatter : LanguageFormatter
 				"System.Single" => "Single",
 				"System.Decimal" => "Decimal",
 				"System.Char" => "Char",
-				_ => type.Name.Contains('`') ? type.Name[..type.Name.IndexOf('`')] : type.Name
+				_ => type.Name
 			};
 		}
 

@@ -9,14 +9,14 @@
             "program": "artifacts/GenerateApiDocs/Debug/net8.0/GenerateApiDocs.dll",
             "args": [
                 "--split-members",
-                "--flatten-namespaces",
+                // "--flatten-namespaces",
                 "--move-deprecated-members",
-                "--reference", "Microsoft.NETFramework.ReferenceAssemblies.net48@1.0.3",
-                "--reference", "System.Drawing.Common@10.0.0",
+                // "--reference", "Microsoft.NETFramework.ReferenceAssemblies.net48@1.0.3",
+                // "--reference", "System.Drawing.Common@10.0.0",
                 "Eto.Forms@2.10.2",
                 "Eto.Serialization.Xaml@2.10.2",
                 "Eto.Serialization.Json@2.10.2",
-                "RhinoCommon@9.0.25315.12305-wip",
+                // "RhinoCommon@9.0.25315.12305-wip",
                 "artifacts/apidocs"
             ],
         }

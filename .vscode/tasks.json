@@ -5,12 +5,17 @@
             "label": "start",
             "type": "shell",
             "command": "npm run build-api && npm run start",
-            "problemMatcher": []
+            "problemMatcher": [],
+            "options": {
+                "env": {
+                    "NODE_OPTIONS": "--max-old-space-size=8192"
+                }
+            }
         },
         {
             "label": "build-api",
             "type": "shell",
-            "command": "dotnet build GenerateApiDocs/GenerateApiDocs.slnx",
+            "command": "rm -rf artifacts/apidocs && dotnet build GenerateApiDocs/GenerateApiDocs.slnx",
             "problemMatcher": []
         }
     ]

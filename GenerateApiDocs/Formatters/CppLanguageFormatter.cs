@@ -90,29 +90,6 @@ sealed class CppLanguageFormatter : LanguageFormatter
 
 	public override string FormatTypeName(Type type)
 	{
-		var aliases = new Dictionary<Type, string>
-		{
-			{ typeof(bool), "bool" },
-			{ typeof(byte), "uint8_t" },
-			{ typeof(sbyte), "int8_t" },
-			{ typeof(char), "char" },
-			{ typeof(decimal), "decimal" },
-			{ typeof(double), "double" },
-			{ typeof(float), "float" },
-			{ typeof(int), "int" },
-			{ typeof(uint), "unsigned int" },
-			{ typeof(long), "long long" },
-			{ typeof(ulong), "unsigned long long" },
-			{ typeof(short), "short" },
-			{ typeof(ushort), "unsigned short" },
-			{ typeof(object), "object" },
-			{ typeof(string), "std::string" },
-			{ typeof(void), "void" }
-		};
-
-		if (aliases.TryGetValue(type, out var alias))
-			return alias;
-
 		if (type.IsByRef) type = type.GetElementType()!;
 		if (type.IsArray) return FormatTypeName(type.GetElementType()!) + "[]";
 
@@ -136,8 +113,26 @@ sealed class CppLanguageFormatter : LanguageFormatter
 		if (type.IsNested)
 			return $"{FormatTypeName(type.DeclaringType!)}::{type.Name}";
 
-		var simpleName = type.Name.Contains('`') ? type.Name[..type.Name.IndexOf('`')] : type.Name;
-		return simpleName.Replace('.', ':');
+		return type.FullName switch
+        {
+			"System.Boolean" => "bool",
+			"System.Byte" => "uint8_t",
+			"System.SByte" => "int8_t",
+			"System.Char" => "char",
+			"System.Decimal" => "decimal",
+			"System.Double" => "double",
+			"System.Single" => "float",
+			"System.Int32" => "int",
+			"System.UInt32" => "unsigned int",
+			"System.Int64" => "long long",
+			"System.UInt64" => "unsigned long long",
+			"System.Int16" => "short",
+			"System.UInt16" => "unsigned short",
+			"System.Object" => "object",
+			"System.String" => "std::string",
+			"System.Void" => "void",
+			_ => type.Name.Replace('.', ':')
+        };
 	}
 
 	string FormatDefaultValue(ParameterInfo parameter)

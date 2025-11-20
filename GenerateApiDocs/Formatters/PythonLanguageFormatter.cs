@@ -70,13 +70,13 @@ sealed class PythonLanguageFormatter : LanguageFormatter
 				"System.Single" => "float",
 				"System.Decimal" => "float",
 				"System.Char" => "str",
-				_ => type.Name.Contains('`') ? type.Name[..type.Name.IndexOf('`')] : type.Name
+				_ => type.Name
 			};
 		}
 
 		var def = type.GetGenericTypeDefinition();
 		var args = type.GetGenericArguments().Select(FormatTypeName);
-		var baseName = def.Name.Contains('`') ? def.Name[..def.Name.IndexOf('`')] : def.Name;
+		var baseName = def.Name;
 		return $"{baseName}[{string.Join(", ", args)}]";
 	}
 

@@ -1,4 +1,4 @@
-# Tutorial 2 Menus and Toolbars
+# Tutorial 2 - Menus and Toolbars
 
 Most desktop platforms have similar features and functionality with menus and toolbars, with a few exceptions:
 
@@ -39,90 +39,90 @@ In Eto.Forms, you can create your toolbars and menus directly using the ``ToolIt
 In this tutorial, we will start from [Tutorial 1 Hello Eto.Forms](Tutorial-1-Hello-Eto.Forms.md)
 
 1. Create a new custom command to share between the menu and toolbar
-		
-	```csharp
-	public class MyCommand : Command
-	{
-		public MyCommand()
-		{
-			MenuText = "C&lick Me, Command";
-			ToolBarText = "Click Me";
-			ToolTip = "This shows a dialog for no reason";
-			//Image = Icon.FromResource ("MyResourceName.ico");
-			//Image = Bitmap.FromResource ("MyResourceName.png");
-			Shortcut = Application.Instance.CommonModifier | Keys.M;  // control+M or cmd+M
-		}
-	
-		protected override void OnExecuted(EventArgs e)
-		{
-			base.OnExecuted(e);
-	
-			MessageBox.Show(Application.Instance.MainForm, "You clicked me!", "Tutorial 2", MessageBoxButtons.OK);
-		}
-	}
-	```
-		
+
+  ```csharp
+  public class MyCommand : Command
+  {
+    public MyCommand()
+    {
+      MenuText = "C&lick Me, Command";
+      ToolBarText = "Click Me";
+      ToolTip = "This shows a dialog for no reason";
+      //Image = Icon.FromResource ("MyResourceName.ico");
+      //Image = Bitmap.FromResource ("MyResourceName.png");
+      Shortcut = Application.Instance.CommonModifier | Keys.M;  // control+M or cmd+M
+    }
+  
+    protected override void OnExecuted(EventArgs e)
+    {
+      base.OnExecuted(e);
+  
+      MessageBox.Show(Application.Instance.MainForm, "You clicked me!", "Tutorial 2", MessageBoxButtons.OK);
+    }
+  }
+  ```
+
 2. Add your command to the File Menu in a MenuBar, and assign it to the form's Menu.
 
-	```csharp
-	Menu = new MenuBar
-	{
-		Items =
-		{
-			new ButtonMenuItem
-			{ 
-				Text = "&File",
-				Items =
-				{ 
-					// you can add commands or menu items
-					new MyCommand(),
-					// another menu item, not based off a Command
-					new ButtonMenuItem { Text = "Click Me, MenuItem" }
-				}
-			} 
-		}
-	}
-	```
+  ```csharp
+  Menu = new MenuBar
+  {
+    Items =
+    {
+      new ButtonMenuItem
+      { 
+        Text = "&File",
+        Items =
+        { 
+          // you can add commands or menu items
+          new MyCommand(),
+          // another menu item, not based off a Command
+          new ButtonMenuItem { Text = "Click Me, MenuItem" }
+        }
+      } 
+    }
+  }
+  ```
 
 3. Add a Quit menu item. *Note*  this is optional. On OS X, one will be added for you if you don't specify a Quit item (otherwise there is no easy way for the user to quit your application).
 
-	```csharp
-	Menu.QuitItem = new Command((sender, e) => Application.Instance.Quit())
-	{ 
-		MenuText = "Quit", 
-		Shortcut = Application.Instance.CommonModifier | Keys.Q
-	};
-	```
+  ```csharp
+  Menu.QuitItem = new Command((sender, e) => Application.Instance.Quit())
+  { 
+    MenuText = "Quit", 
+    Shortcut = Application.Instance.CommonModifier | Keys.Q
+  };
+  ```
 
 4. Add an About menu item to provide information about your app. This shows how to create a menu item directly, without using a command.
 
-	```csharp
-	var aboutItem = new ButtonMenuItem { Text = "About..." };
-	aboutItem.Click += (sender, e) =>
-	{
-		var dlg = new Dialog
-		{ 
-			Content = new Label { Text = "About my app..." }, 
-			ClientSize = new Size(200, 200)
-		};
-		dlg.ShowModal(this);
-	};
-	Menu.AboutItem = aboutItem;
-	```
+  ```csharp
+  var aboutItem = new ButtonMenuItem { Text = "About..." };
+  aboutItem.Click += (sender, e) =>
+  {
+    var dlg = new Dialog
+    { 
+      Content = new Label { Text = "About my app..." }, 
+      ClientSize = new Size(200, 200)
+    };
+    dlg.ShowModal(this);
+  };
+  Menu.AboutItem = aboutItem;
+  ```
 
 5. Create a ToolBar
 
-	```csharp
-	ToolBar = new ToolBar
-	{
-		Items =
-		{ 
-			new MyCommand(),
-			new SeparatorToolItem(),
-			new ButtonToolItem { Text = "Click Me, ToolItem" }
-		}
-	};
-	```
+  ```csharp
+  ToolBar = new ToolBar
+  {
+    Items =
+    { 
+      new MyCommand(),
+      new SeparatorToolItem(),
+      new ButtonToolItem { Text = "Click Me, ToolItem" }
+    }
+  };
+  ```
 
 - [C# Source](https://github.com/picoe/Eto/blob/develop/samples/Tutorials/CSharp/Tutorial2/Main.cs)
 - [F# Source](https://github.com/picoe/Eto/blob/develop/samples/Tutorials/FSharp/Tutorial2/Program.fs)

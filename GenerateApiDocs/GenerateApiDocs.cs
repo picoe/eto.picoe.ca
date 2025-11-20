@@ -16,13 +16,13 @@ if (args.Length < 2)
 {
 	Console.WriteLine("Usage: dotnet run -- [options] <Assembly.dll|package.nupkg|nugetpackage@1.0.0> [<Assembly.dll|package.nupkg|nugetpackage@1.0.0> ...] <OutputDir>");
 	Console.WriteLine("Example: dotnet run -- path/To/MyFile.dll path/to/OtherFile.dll docs/api");
-Console.WriteLine("Options:");
-Console.WriteLine("  --flatten-namespaces                Flatten namespaces in output paths");
-Console.WriteLine("  --include-explicit-implementations  Include explicit interface implementations");
-Console.WriteLine("  --move-deprecated-members           Move deprecated properties and methods to their own sections");
-Console.WriteLine("  --split-members                     Generate individual pages for constructors, fields, properties, events, and methods");
-Console.WriteLine("  --reference <spec>                  Preload extra assemblies or NuGet packages for type resolution");
-return 1;
+	Console.WriteLine("Options:");
+	Console.WriteLine("  --flatten-namespaces                Flatten namespaces in output paths");
+	Console.WriteLine("  --include-explicit-implementations  Include explicit interface implementations");
+	Console.WriteLine("  --move-deprecated-members           Move deprecated properties and methods to their own sections");
+	Console.WriteLine("  --split-members                     Generate individual pages for constructors, fields, properties, events, and methods");
+	Console.WriteLine("  --reference <spec>                  Preload extra assemblies or NuGet packages for type resolution");
+	return 1;
 }
 
 var argIndex = 0;
@@ -192,7 +192,7 @@ foreach (var type in allTypes)
 
 	var docId = typeIdMap[XmlDocumentation.NormalizeTypeName(type)];
 
-	var sidebarEntry = sidebarWriter.AddType(nsKey, nsSlugPath, docId, GetDisplayTypeName(type), splitMembers);
+	var sidebarEntry = sidebarWriter.AddType(nsKey, nsSlugPath, docId, csharpFormatter.FormatTypeName(type), splitMembers);
 
 	using var w = new StreamWriter(filePath);
 
@@ -201,8 +201,8 @@ foreach (var type in allTypes)
 	// --- frontmatter ---
 	w.WriteLine("---");
 	w.WriteLine($"id: {Helpers.EscapeYaml(typeSlug)}");
-	w.WriteLine($"title: {Helpers.EscapeYaml(GetDisplayTypeName(type))}");
-	w.WriteLine($"sidebar_label: {Helpers.EscapeYaml(GetDisplayTypeName(type))}");
+	w.WriteLine($"title: {Helpers.EscapeYaml(csharpFormatter.FormatTypeName(type))}");
+	w.WriteLine($"sidebar_label: {Helpers.EscapeYaml(csharpFormatter.FormatTypeName(type))}");
 	w.WriteLine("---");
 	w.WriteLine();
 
@@ -211,7 +211,7 @@ foreach (var type in allTypes)
 	xmlDocs.TryGetType(type, out var typeXml);
 
 	// Title
-	w.WriteLine($"# {Helpers.EscapePlainText(GetDisplayTypeFullName(type))}");
+	w.WriteLine($"# {Helpers.EscapePlainText(csharpFormatter.FormatTypeName(type))}");
 	w.WriteLine();
 	WriteDeprecationWarning(w, type);
 
@@ -318,10 +318,6 @@ string GetTypeSlug(Type t, bool forNavigation = false, bool shortName = false)
 	return baseName;
 }
 
-string GetDisplayTypeName(Type t) => GetTypeSlug(t, shortName: true);
-
-string GetDisplayTypeFullName(Type t) => GetDisplayTypeName(t);
-
 string GetTypeKind(Type t)
 {
 	if (t.IsEnum) return "enum";
@@ -350,7 +346,7 @@ void WriteBaseAndInterfacesSection(StreamWriter w, Type type, Dictionary<string,
 	// find all derived classes that implement this type
 	var derivedTypes = allTypes
 		.Where(t2 => t2 != type && type.IsAssignableFrom(t2))
-		.OrderBy(t => GetDisplayTypeName(t))
+		.OrderBy(t => csharpFormatter.FormatTypeName(t))
 		.ToList();
 
 	if (derivedTypes.Count > 0)
@@ -512,7 +508,7 @@ void WriteConstructorsSection(StreamWriter w, Type type, XmlDocumentation xmlDoc
 
 string GetMethodHeading(Type type, MethodBase method)
 {
-	var name = method.IsConstructor ? GetDisplayTypeName(type) : method.Name;
+	var name = method.IsConstructor ? csharpFormatter.FormatTypeName(type) : method.Name;
 
 	if (method is MethodInfo mi && mi.IsGenericMethod)
 	{
@@ -662,7 +658,7 @@ void WriteSummarySection(StreamWriter w, XElement? xml, Dictionary<string, strin
 	{
 		if (includeHeader)
 			w.WriteLine("#### Summary");
-		w.WriteLine(Helpers.EscapePlainText(summary));
+		w.WriteLine(summary);
 		w.WriteLine();
 	}
 }
@@ -699,7 +695,7 @@ void WriteRemarksSection(StreamWriter w, XElement? xml, Dictionary<string, strin
 	if (!string.IsNullOrEmpty(remarks))
 	{
 		w.WriteLine("#### Remarks");
-		w.WriteLine(Helpers.EscapePlainText(remarks));
+		w.WriteLine(remarks);
 		w.WriteLine();
 	}
 }
@@ -710,7 +706,7 @@ void WriteReturnsSection(StreamWriter w, XElement? xml, MethodBase method, Dicti
 	var mi = method as MethodInfo;
 	var returnType = mi == null || mi.ReturnType == typeof(void) ? "" : LinkOrCodeType(mi.ReturnType);
 	var returns = xmlDocs.RenderDocumentation(xml.Element("returns"), typeIdMap);
-	
+
 	if (string.IsNullOrEmpty(returnType) && string.IsNullOrEmpty(returns))
 		return;
 
@@ -719,7 +715,7 @@ void WriteReturnsSection(StreamWriter w, XElement? xml, MethodBase method, Dicti
 		w.WriteLine($"Type: {returnType}");
 	if (!string.IsNullOrEmpty(returns))
 	{
-		w.WriteLine(Helpers.EscapePlainText(returns));
+		w.WriteLine(returns);
 	}
 	w.WriteLine();
 }
@@ -900,7 +896,7 @@ void WriteConstructorDocuments(Type type, List<ConstructorInfo> constructors, Xm
 	{
 		var memberSlug = GetMemberSlug(type, ctor);
 		var heading = GetMethodHeading(type, ctor);
-		var title = $"{GetDisplayTypeName(type)}.{heading}";
+		var title = $"{csharpFormatter.FormatTypeName(type)}.{heading}";
 		xmlDocs.TryGetConstructor(type, ctor, out var xml);
 		var summary = xmlDocs.GetSummaryText(xml, typeIdMap);
 		WriteMemberDoc(type, context, memberSlug, title, heading, "Constructors", summary, writer =>
@@ -915,7 +911,7 @@ void WriteFieldDocuments(Type type, List<FieldInfo> fields, XmlDocumentation xml
 	foreach (var field in fields.OrderBy(f => f.Name))
 	{
 		var memberSlug = GetMemberSlug(type, field);
-		var title = $"{GetDisplayTypeName(type)}.{field.Name}";
+		var title = $"{csharpFormatter.FormatTypeName(type)}.{field.Name}";
 		xmlDocs.TryGetField(type, field, out var xml);
 		var summary = xmlDocs.GetSummaryText(xml, typeIdMap);
 		WriteMemberDoc(type, context, memberSlug, title, field.Name, "Fields", summary, writer =>
@@ -930,7 +926,7 @@ void WritePropertyDocuments(Type type, List<PropertyInfo> properties, XmlDocumen
 	foreach (var prop in properties)
 	{
 		var memberSlug = GetMemberSlug(type, prop);
-		var title = $"{GetDisplayTypeName(type)}.{prop.Name}";
+		var title = $"{csharpFormatter.FormatTypeName(type)}.{prop.Name}";
 		xmlDocs.TryGetProperty(type, prop, out var xml);
 		var summary = xmlDocs.GetSummaryText(xml, typeIdMap);
 		WriteMemberDoc(type, context, memberSlug, title, prop.Name, "Properties", summary, writer =>
@@ -945,7 +941,7 @@ void WriteEventDocuments(Type type, List<EventInfo> events, XmlDocumentation xml
 	foreach (var ev in events.OrderBy(e => e.Name))
 	{
 		var memberSlug = GetMemberSlug(type, ev);
-		var title = $"{GetDisplayTypeName(type)}.{ev.Name}";
+		var title = $"{csharpFormatter.FormatTypeName(type)}.{ev.Name}";
 		xmlDocs.TryGetEvent(type, ev, out var xml);
 		var summary = xmlDocs.GetSummaryText(xml, typeIdMap);
 		WriteMemberDoc(type, context, memberSlug, title, ev.Name, "Events", summary, writer =>
@@ -961,7 +957,7 @@ void WriteMethodDocuments(Type type, List<MethodInfo> methods, XmlDocumentation 
 	{
 		var memberSlug = GetMemberSlug(type, method);
 		var heading = GetMethodHeading(type, method);
-		var title = $"{GetDisplayTypeName(type)}.{heading}";
+		var title = $"{csharpFormatter.FormatTypeName(type)}.{heading}";
 		xmlDocs.TryGetMethod(type, method, out var xml);
 		var summary = xmlDocs.GetSummaryText(xml, typeIdMap);
 		WriteMemberDoc(type, context, memberSlug, title, heading, "Methods", summary, writer =>
@@ -975,6 +971,7 @@ void WriteMemberDoc(Type type, TypeOutputContext context, string memberSlug, str
 {
 	var docId = $"{context.TypeSlug}--{memberSlug}";
 	var filePath = Path.Combine(context.FileDirectory, $"{docId}.mdx");
+
 	using var w = new StreamWriter(filePath);
 	w.WriteLine("---");
 	w.WriteLine($"id: {Helpers.EscapeYaml(docId)}");
@@ -985,17 +982,25 @@ void WriteMemberDoc(Type type, TypeOutputContext context, string memberSlug, str
 	WriteTabsImports(w);
 	w.WriteLine($"# {Helpers.EscapePlainText(title)}");
 	w.WriteLine();
-	w.WriteLine($"Parent type: [`{GetDisplayTypeName(type)}`](/api/{context.TypeSlug})");
+	w.WriteLine($"Parent type: [`{csharpFormatter.FormatTypeName(type)}`](/api/{context.TypeSlug})");
 	w.WriteLine();
 	writeContent(w);
 	if (context.SplitMembers)
 	{
+		var fullDocId = docId;
+		if (!flattenNamespaces && type.Namespace != null)
+		{
+			var nsPath = type.Namespace.Replace('.', '/');
+			fullDocId = $"{nsPath}/{docId}";
+		}
 		if (!string.IsNullOrEmpty(sectionLabel))
 		{
 			var section = GetOrCreateSection(context, sectionLabel);
-			section.DocIds.Add(docId);
+			section.DocIds.Add(fullDocId);
 		}
-		context.TableEntries.Add(new MemberTableEntry(sectionLabel ?? "Members", sidebarLabel, docId, string.IsNullOrWhiteSpace(summary) ? "No description available." : summary));
+
+		
+		context.TableEntries.Add(new MemberTableEntry(sectionLabel ?? "Members", sidebarLabel, fullDocId, string.IsNullOrWhiteSpace(summary) ? "No description available." : summary));
 	}
 }
 

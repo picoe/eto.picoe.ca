@@ -24,6 +24,11 @@ abstract class LanguageFormatter
 	{
 		try
 		{
+			if (!parameter.HasDefaultValue)
+			{
+				defaultValue = null;
+				return false;
+			}
 			defaultValue = parameter.RawDefaultValue;
 			if (defaultValue == DBNull.Value || defaultValue == Missing.Value)
 				defaultValue = null;
