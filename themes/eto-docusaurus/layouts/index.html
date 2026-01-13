@@ -1,0 +1,42 @@
+{{ define "hero" }}
+  <section class="hero">
+    <div class="hero__inner">
+      <p class="hero__eyebrow">{{ site.Params.tagline }}</p>
+      <h1 class="hero__title">{{ site.Title }}</h1>
+      <p class="hero__lead">{{ site.Params.heroDescription }}</p>
+      <div class="hero__actions">
+        <a class="cta-btn" href="{{ site.Params.heroCTAURL }}">{{ site.Params.heroCTALabel }}</a>
+        <a class="cta-btn cta-btn--ghost" href="/api/">Browse the API</a>
+      </div>
+    </div>
+  </section>
+{{ end }}
+
+{{ define "main" }}
+  <section class="feature-grid">
+    {{ range site.Params.featureCards }}
+      <article class="feature-card">
+        <img src="{{ .icon | relURL }}" alt="" role="presentation" />
+        <h3>{{ .title }}</h3>
+        <p>{{ .body }}</p>
+      </article>
+    {{ end }}
+  </section>
+  <section class="doc-highlights">
+    <div>
+      <h2>Start building</h2>
+      <p>Follow the Quick Start to spin up your first Eto.Forms application in minutes.</p>
+      <a href="/docs/QuickStart/" class="link-arrow">Read the Quick Start →</a>
+    </div>
+    <div>
+      <h2>Explore tutorials</h2>
+      <p>Work through guided tutorials to understand layouts, menus, and platform-specific code.</p>
+      <a href="/docs/Tutorials/" class="link-arrow">View tutorials →</a>
+    </div>
+    <div>
+      <h2>Investigate the API</h2>
+      <p>Use the generated API reference to dive deep into every namespace, class, and member.</p>
+      <a href="/api/" class="link-arrow">Open API docs →</a>
+    </div>
+  </section>
+{{ end }}

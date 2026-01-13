@@ -1,0 +1,7 @@
+{{- $toc := .TableOfContents -}}
+{{- if $toc -}}
+  <aside class="docs-toc" aria-label="On this page">
+    <div class="docs-toc__title">On this page</div>
+    {{ $toc | safeHTML }}
+  </aside>
+{{- end -}}

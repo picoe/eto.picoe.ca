@@ -1,0 +1,17 @@
+{{- $section := .Section -}}
+{{- if not $section }}{{ return }}{{ end -}}
+{{- $root := site.GetPage (printf "/%s" $section) -}}
+{{- if not $root }}{{ return }}{{ end -}}
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+  <a href="{{ $root.RelPermalink }}">{{ $root.LinkTitle }}</a>
+  {{- with .Parent -}}
+    {{- if and (ne . $root) (ne .Permalink $root.Permalink) -}}
+      <span aria-hidden="true">›</span>
+      <a href="{{ .RelPermalink }}">{{ .LinkTitle }}</a>
+    {{- end -}}
+  {{- end -}}
+  {{- if ne . $root -}}
+    <span aria-hidden="true">›</span>
+    <span>{{ .LinkTitle }}</span>
+  {{- end -}}
+</nav>

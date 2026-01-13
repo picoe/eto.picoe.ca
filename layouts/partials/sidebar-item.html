@@ -1,0 +1,15 @@
+{{- $page := .page -}}
+{{- $current := .current -}}
+{{- $classes := slice -}}
+{{- if or (eq $page $current) ($page.IsAncestor $current) -}}
+  {{- $classes = $classes | append "active" -}}
+{{- end -}}
+{{- if eq $page $current -}}
+  {{- $classes = $classes | append "current" -}}
+{{- end -}}
+<li class="{{ delimit $classes " " }}">
+  <a href="{{ $page.RelPermalink }}">{{ $page.LinkTitle }}</a>
+  {{- if and $page.IsSection (gt (len $page.Pages) 0) -}}
+    {{- partial "sidebar-tree.html" (dict "node" $page "current" $current) -}}
+  {{- end -}}
+</li>

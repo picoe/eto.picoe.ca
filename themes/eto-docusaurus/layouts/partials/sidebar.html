@@ -1,0 +1,15 @@
+{{- $section := .Section -}}
+{{- $sections := slice "docs" "api" -}}
+{{- if in $sections $section -}}
+  {{- $root := site.GetPage (printf "/%s" $section) -}}
+  {{- if $root -}}
+    <aside class="docs-sidebar" aria-label="{{ $root.Title }} navigation">
+      <div class="docs-sidebar__label">{{ $root.Title }}</div>
+      <div class="docs-sidebar__scroll">
+        <nav>
+          {{ partial "sidebar-tree.html" (dict "node" $root "current" . "includeSelf" true) }}
+        </nav>
+      </div>
+    </aside>
+  {{- end -}}
+{{- end -}}

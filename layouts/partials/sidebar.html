@@ -1,0 +1,17 @@
+{{- $section := .Section -}}
+{{- if or (eq $section "docs") (eq $section "api") -}}
+  {{- $root := site.GetPage (printf "/%s" $section) -}}
+  {{- if $root -}}
+    <aside class="site-sidebar">
+      <div class="sidebar-heading">{{ $root.Title }}</div>
+      <nav class="sidebar-nav" aria-label="{{ $root.Title }} navigation">
+        <ul>
+          <li class="{{ if eq . $root }}current{{ end }}">
+            <a href="{{ $root.RelPermalink }}">{{ $root.LinkTitle }}</a>
+          </li>
+          {{ partial "sidebar-tree.html" (dict "node" $root "current" .) }}
+        </ul>
+      </nav>
+    </aside>
+  {{- end -}}
+{{- end -}}

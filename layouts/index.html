@@ -1,0 +1,22 @@
+{{ define "hero" }}
+  <section class="hero">
+    <div class="hero-inner">
+      <p class="eyebrow">{{ site.Params.tagline }}</p>
+      <h1>{{ site.Title }}</h1>
+      <p>{{ site.Params.heroDescription }}</p>
+      <a class="cta-btn" href="{{ site.Params.heroCTAURL }}">{{ site.Params.heroCTALabel }}</a>
+    </div>
+  </section>
+{{ end }}
+
+{{ define "main" }}
+  <section class="feature-grid">
+    {{ range site.Params.featureCards }}
+      <article class="feature-card">
+        <img src="{{ .icon | relURL }}" alt="" role="presentation" />
+        <h3>{{ .title }}</h3>
+        <p>{{ .body }}</p>
+      </article>
+    {{ end }}
+  </section>
+{{ end }}

@@ -1,0 +1,21 @@
+<script>
+(function(){
+  var storageKey = 'eto-theme';
+  var root = document.documentElement;
+  var toggleButtons;
+  function setTheme(mode){
+    root.dataset.theme = mode;
+    try { localStorage.setItem(storageKey, mode); } catch (err) {}
+  }
+  function cycleTheme(){
+    var next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+    setTheme(next);
+  }
+  document.addEventListener('DOMContentLoaded', function(){
+    toggleButtons = document.querySelectorAll('[data-toggle-theme]');
+    toggleButtons.forEach(function(btn){
+      btn.addEventListener('click', cycleTheme);
+    });
+  });
+})();
+</script>

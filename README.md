@@ -1,41 +1,46 @@
-# Website
+# Eto.Forms Website
 
-This website is built using [Docusaurus](https://docusaurus.io/), a modern static website generator.
+This repository hosts [eto.picoe.ca](https://eto.picoe.ca), the public documentation and API reference for Eto.Forms. The site now runs on [Hugo](https://gohugo.io/), so you only need one binary to preview or build it.
 
-## Installation
+## Prerequisites
 
-```bash
-npm install
-```
+Install the **extended** Hugo binary (for example with `brew install hugo` on macOS). .NET is only required if you plan to regenerate the API reference using the `GenerateApiDocs` tool.
 
-## Local Development
+## Local development
 
 ```bash
-npm run start
+hugo server --disableFastRender
 ```
 
-This command starts a local development server and opens up a browser window. Most changes are reflected live without having to restart the server.
+The server prints a local URL (usually `http://localhost:1313`). Changes inside the `content/`, `layouts/`, `assets/`, or `static/` folders hot-reload automatically.
 
-## Build
+## Production build
 
 ```bash
-npm run build
+hugo --minify
 ```
 
-This command generates static content into the `build` directory and can be served using any static contents hosting service.
+The static files land in `public/`. Deploy the contents of that folder with your preferred hosting solution.
 
-## Deployment
+## Repository layout
 
-Using SSH:
+| Path | Purpose |
+| --- | --- |
+| `content/docs` | Markdown source for the guides, tutorials, and contributing docs. `_index.md` files describe section landing pages. |
+| `content/api` | Generated API reference. Each class/member lives in its own Markdown file. |
+| `layouts/` | Hugo templates (base layout, navigation, sidebar, etc.). |
+| `assets/css/main.css` | Global styles compiled and fingerprinted by Hugo Pipes. |
+| `static/` | Images and other assets copied as-is to the final site. |
+| `GenerateApiDocs/` | .NET CLI for regenerating the API reference from Eto assemblies. |
 
-```bash
-USE_SSH=true npm run deploy
-```
+## Rebuilding the API reference
 
-Not using SSH:
+1. Build the Eto assemblies (or grab the packaged binaries) so each `.dll` has a matching XML documentation file next to it.
+2. Run the `GenerateApiDocs` tool, pointing it at the assemblies you want to document and `content/api` as the output directory. See `GenerateApiDocs/README.md` for options.
+3. Commit the updated Markdown files and rebuild the site with Hugo.
 
-```bash
-GIT_USER=<Your GitHub username> npm run deploy
-```
+## Tips
 
-If you are using GitHub pages for hosting, this command is a convenient way to build the website and push to the `gh-pages` branch.
+- Use front matter `weight` values on `_index.md` files to order sections in the docs sidebar.
+- Hugo automatically adds every page under `content/docs` and `content/api` to the section sidebar, so keep file names and titles descriptive.
+- If you are editing API files manually, keep the Markdown plain—Hugo does not support MDX or React components.

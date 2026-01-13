@@ -1,0 +1,17 @@
+{{- $pieces := slice -}}
+{{- with .Lastmod -}}
+  {{- $pieces = $pieces | append (printf "Last updated %s" (time.Format "Jan 2, 2006" .)) -}}
+{{- end -}}
+{{- with .File -}}
+  {{- $editURL := printf "https://github.com/picoe/eto.picoe.ca/edit/main/%s" .Path -}}
+  {{- $pieces = $pieces | append (printf "<a href=\"%s\" target=\"_blank\" rel=\"noreferrer noopener\">Edit this page on GitHub</a>" $editURL) -}}
+{{- end -}}
+{{- if gt (len $pieces) 0 }}
+  <div class="content-meta">
+    {{- $first := index $pieces 0 -}}
+    <span>{{ $first }}</span>
+    {{- range after 1 $pieces }}
+      <span>• {{ . | safeHTML }}</span>
+    {{- end }}
+  </div>
+{{- end }}

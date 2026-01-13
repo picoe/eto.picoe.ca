@@ -1,0 +1,27 @@
+{{ define "main" }}
+  <article class="content-card">
+    <header>
+      <h1>{{ .Title }}</h1>
+      {{ with .Params.subtitle }}
+        <p class="subtitle">{{ . }}</p>
+      {{ end }}
+    </header>
+    <div class="content-body">
+      {{ .Content }}
+    </div>
+    {{ if gt (len .Pages) 0 }}
+      <div class="child-pages">
+        <h2>In this section</h2>
+        <ul>
+          {{ range .Pages.ByWeight }}
+            <li>
+              <a href="{{ .RelPermalink }}">{{ .LinkTitle }}</a>
+              {{ with .Params.description }} – {{ . }}{{ end }}
+            </li>
+          {{ end }}
+        </ul>
+      </div>
+    {{ end }}
+    {{ partial "content-meta.html" . }}
+  </article>
+{{ end }}

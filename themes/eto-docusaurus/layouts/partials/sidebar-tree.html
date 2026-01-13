@@ -1,0 +1,27 @@
+{{- $node := .node -}}
+{{- $current := .current -}}
+{{- $includeSelf := .includeSelf | default false -}}
+{{- $pages := cond $includeSelf (slice $node) ($node.Pages.ByWeight) -}}
+{{- if $includeSelf -}}
+  {{- $pages = (slice $node) -}}
+{{- end -}}
+{{- if gt (len $pages) 0 -}}
+  <ul>
+    {{- range $pages -}}
+      {{- $title := .Params.sidebar_label | default .LinkTitle -}}
+      {{- $classes := slice "sidebar-item" -}}
+      {{- if or (eq . $current) (.IsAncestor $current) -}}
+        {{- $classes = $classes | append "is-active" -}}
+      {{- end -}}
+      {{- if eq . $current -}}
+        {{- $classes = $classes | append "is-current" -}}
+      {{- end -}}
+      <li class="{{ delimit $classes " " }}">
+        <a href="{{ .RelPermalink }}">{{ $title }}</a>
+        {{- if and .IsSection (gt (len .Pages) 0) -}}
+          {{- partial "sidebar-tree.html" (dict "node" . "current" $current) -}}
+        {{- end -}}
+      </li>
+    {{- end -}}
+  </ul>
+{{- end -}}

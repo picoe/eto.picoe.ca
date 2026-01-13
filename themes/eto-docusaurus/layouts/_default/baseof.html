@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="{{ site.Language.Lang }}">
+  <head>
+    {{ partial "head.html" . }}
+    {{ block "head" . }}{{ end }}
+  </head>
+  <body class="{{ if .IsHome }}is-home{{ else }}is-page{{ end }}">
+    <a class="skip-link" href="#main">Skip to content</a>
+    {{ partial "navbar.html" . }}
+    {{ if .IsHome }}
+      {{ block "hero" . }}{{ end }}
+    {{ end }}
+    {{ block "page" . }}
+      <main id="main" class="site-main">
+        {{ block "main" . }}{{ end }}
+      </main>
+    {{ end }}
+    {{ partial "footer.html" . }}
+    {{ partial "scripts.html" . }}
+  </body>
+</html>

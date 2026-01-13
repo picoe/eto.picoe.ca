@@ -1,0 +1,85 @@
+baseURL = "https://eto.picoe.ca/"
+languageCode = "en"
+title = "Eto.Forms"
+enableRobotsTXT = true
+defaultContentLanguage = "en"
+
+author = "Picoe Software"
+
+theme = 'ananke'
+
+disableKinds = ["taxonomy", "term"]
+
+
+[params]
+tagline = "Native Cross Platform UI made easy."
+heroCTALabel = "Get Started in 5 Minutes ⏱️"
+heroCTAURL = "/docs/QuickStart/"
+heroDescription = "Eto.Forms lets you build native desktop applications with a single, shared .NET codebase."
+githubURL = "https://github.com/picoe/Eto"
+siteDescription = "Documentation and API reference for Eto.Forms, the native cross platform UI toolkit."
+
+  [[params.featureCards]]
+  title = "Easy to Use"
+  icon = "/img/eto-easy.svg"
+  body = "Eto.Forms makes building cross-platform desktop apps simple. With a clean API and intuitive design, you can create powerful UIs in just a few lines of C#."
+
+  [[params.featureCards]]
+  title = "Native on Every Platform"
+  icon = "/img/eto-native.svg"
+  body = "Write your UI once, and Eto.Forms makes it look and feel right at home on Windows, macOS, and Linux — using each platform's native widgets."
+
+  [[params.featureCards]]
+  title = "Flexible and Extensible"
+  icon = "/img/eto-flexible.svg"
+  body = "Extend controls, integrate with existing libraries, or design your own — all while keeping your core code portable."
+
+[[params.footerColumns]]
+  title = "Docs"
+  [[params.footerColumns.links]]
+    label = "Quick Start"
+    url = "/docs/QuickStart/"
+  [[params.footerColumns.links]]
+    label = "Tutorials"
+    url = "/docs/Tutorials/"
+
+[[params.footerColumns]]
+  title = "Community"
+  [[params.footerColumns.links]]
+    label = "GitHub Discussions"
+    url = "https://github.com/picoe/Eto/discussions"
+  [[params.footerColumns.links]]
+    label = "Stack Overflow"
+    url = "https://stackoverflow.com/questions/tagged/eto"
+
+[[params.footerColumns]]
+  title = "More"
+  [[params.footerColumns.links]]
+    label = "GitHub"
+    url = "https://github.com/picoe/Eto"
+
+[menu]
+  [[menu.main]]
+    identifier = "docs"
+    name = "Docs"
+    url = "/docs/"
+    weight = 1
+  [[menu.main]]
+    identifier = "api"
+    name = "API"
+    url = "/api/"
+    weight = 2
+  [[menu.main]]
+    identifier = "github"
+    name = "GitHub"
+    url = "https://github.com/picoe/Eto"
+    weight = 3
+
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
+  [markup.highlight]
+    noClasses = false
+    style = "github"
+    lineNos = false

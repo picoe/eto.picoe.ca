@@ -1,0 +1,14 @@
+{{ define "main" }}
+  <article class="content-card">
+    <header>
+      <h1>{{ .Title }}</h1>
+      {{ with .Params.subtitle }}
+        <p class="subtitle">{{ . }}</p>
+      {{ end }}
+    </header>
+    <div class="content-body">
+      {{ .Content }}
+    </div>
+    {{ partial "content-meta.html" . }}
+  </article>
+{{ end }}

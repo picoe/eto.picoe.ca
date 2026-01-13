@@ -1,0 +1,34 @@
+{{- $title := cond .IsHome (printf "%s · %s" .Site.Title (.Site.Params.tagline | default "")) (printf "%s | %s" .Title .Site.Title) -}}
+{{- $description := .Params.description | default .Site.Params.siteDescription -}}
+{{- $style := resources.Get "css/main.css" | minify | fingerprint -}}
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>{{ $title }}</title>
+<meta name="description" content="{{ $description }}" />
+<meta property="og:title" content="{{ $title }}" />
+<meta property="og:description" content="{{ $description }}" />
+<meta property="og:type" content="{{ cond .IsHome "website" "article" }}" />
+<meta property="og:url" content="{{ .Permalink }}" />
+<meta property="og:image" content="{{ "img/eto-native2.svg" | relURL }}" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="icon" type="image/png" href="{{ "img/favicon.png" | relURL }}" />
+<link rel="apple-touch-icon" href="{{ "img/apple-touch-icon.png" | relURL }}" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<script>
+(function(){
+  try {
+    var storageKey = 'eto-theme';
+    var root = document.documentElement;
+    var saved = localStorage.getItem(storageKey);
+    var systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var mode = saved || (systemPrefersDark ? 'dark' : 'light');
+    root.dataset.theme = mode;
+  } catch (err) {
+    document.documentElement.dataset.theme = 'light';
+  }
+})();
+</script>
+<link rel="stylesheet" href="{{ $style.RelPermalink }}" integrity="{{ $style.Data.Integrity }}" />
+{{ hugo.Generator }}

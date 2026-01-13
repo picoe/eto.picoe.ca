@@ -1,0 +1,13 @@
+{{- $page := .page -}}
+{{- $current := .current -}}
+{{- $title := $page.Params.sidebar_label | default $page.LinkTitle -}}
+{{- $classes := slice "sidebar-item" -}}
+{{- if or (eq $page $current) ($page.IsAncestor $current) -}}
+  {{- $classes = $classes | append "is-active" -}}
+{{- end -}}
+{{- if eq $page $current -}}
+  {{- $classes = $classes | append "is-current" -}}
+{{- end -}}
+<li class="{{ delimit $classes " " }}">
+  <a href="{{ $page.RelPermalink }}">{{ $title }}</a>
+</li>

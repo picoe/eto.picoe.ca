@@ -1,0 +1,14 @@
+{{- $title := cond .IsHome (.Site.Title) (printf "%s | %s" .Title .Site.Title) -}}
+{{- $description := .Params.description | default .Site.Params.siteDescription -}}
+{{- $style := resources.Get "css/main.css" | minify | fingerprint -}}
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>{{ $title }}</title>
+<meta name="description" content="{{ $description }}" />
+<meta property="og:title" content="{{ $title }}" />
+<meta property="og:description" content="{{ $description }}" />
+<meta property="og:type" content="{{ cond .IsHome "website" "article" }}" />
+<meta property="og:url" content="{{ .Permalink }}" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="stylesheet" href="{{ $style.RelPermalink }}" integrity="{{ $style.Data.Integrity }}" />
+{{ hugo.Generator }}

@@ -1,0 +1,8 @@
+{{- $pages := .node.Pages.ByWeight -}}
+{{- if gt (len $pages) 0 -}}
+  <ul>
+    {{- range $pages -}}
+      {{- partial "sidebar-item.html" (dict "page" . "current" $.current) -}}
+    {{- end -}}
+  </ul>
+{{- end -}}

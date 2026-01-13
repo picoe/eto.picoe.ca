@@ -3,12 +3,9 @@
 ##
 ## Get latest from `dotnet new gitignore`
 
-# Production
-/build
-
-# Generated files
-.docusaurus
-.cache-loader
+# Hugo build artifacts
+/public
+/resources/_gen
 
 # Misc
 .DS_Store
@@ -500,3 +497,4 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+content/api/Eto

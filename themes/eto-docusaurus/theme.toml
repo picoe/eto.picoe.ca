@@ -1,0 +1,8 @@
+name = "eto-docusaurus"
+license = "BSD-3-Clause"
+licenselink = "https://github.com/picoe/eto.picoe.ca/blob/main/LICENSE"
+author = "Picoe Software"
+min_version = "0.120.0"
+[author]
+  name = "Picoe Software"
+  homepage = "https://eto.picoe.ca"
