@@ -1,4 +1,6 @@
-# Tutorial 1 - Hello Eto.Forms
+---
+title: "Tutorial 1 - Hello Eto.Forms"
+---
 
 This tutorial will teach you how to create a simple ["Hello World"](http://en.wikipedia.org/wiki/Hello_world_program) application using Eto.Forms
 

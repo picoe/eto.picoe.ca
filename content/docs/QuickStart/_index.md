@@ -3,8 +3,6 @@ title: "Quick Start"
 weight: 2
 ---
 
-# Quick Start
-
 The easiest way to get started with Eto.Forms is to use the Visual Studio extensions or dotnet new. These provide a way to create new Eto.Forms projects very easily, either with a single project or separate launcher projects per platform.
 
 ## Visual Studio for Windows

@@ -1,4 +1,6 @@
-# Running Your Application
+---
+title: "Running Your Application"
+---
 
 To run your application, you will need to include one or more of the platform nuget packages in your executable project.
 

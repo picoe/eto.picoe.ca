@@ -3,8 +3,6 @@ title: "Contributing"
 weight: 6
 ---
 
-# Contributing
-
 ## Code conventions
 
 We use [EditorConfig](http://editorconfig.org) to automatically use correct coding conventions.

@@ -2,8 +2,6 @@
 title: "Versioning"
 ---
 
-# Versioning
-
 Eto.Forms uses the following versioning scheme:
 
 1. The master branch is the stable/release branch.

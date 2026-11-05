@@ -1,4 +1,6 @@
-# Supported Platforms
+---
+title: "Supported Platforms"
+---
 
 These are the supported *runtime* plaforms. For the requirments for developing with Eto.Forms, see [Contributing](../Contributing).
 

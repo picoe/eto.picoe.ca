@@ -3,8 +3,6 @@ title: "Tutorials"
 weight: 3
 ---
 
-# Tutorials
-
 * [Quick Start](../QuickStart) - Shows how to create your first project.
 * [Tutorial 1 Hello Eto.Forms](./Tutorial-1-Hello-Eto.Forms)
 * [Tutorial 2 Menus and Toolbars](./Tutorial-2-Menus-and-Toolbars)

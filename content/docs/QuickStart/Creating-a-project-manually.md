@@ -1,4 +1,6 @@
-# Creating a project manually
+---
+title: "Creating a project manually"
+---
 
 This shows how you can create a new project manually.
 

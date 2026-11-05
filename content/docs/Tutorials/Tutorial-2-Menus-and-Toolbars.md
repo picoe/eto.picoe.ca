@@ -1,4 +1,6 @@
-# Tutorial 2 - Menus and Toolbars
+---
+title: "Tutorial 2 - Menus and Toolbars"
+---
 
 Most desktop platforms have similar features and functionality with menus and toolbars, with a few exceptions:
 

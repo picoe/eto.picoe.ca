@@ -1,4 +1,6 @@
-# Tutorial 3 - Table Layout
+---
+title: "Tutorial 3 - Table Layout"
+---
 
 The ``TableLayout`` is the main layout for Eto.Forms to organize your controls.  It is far preferred over using a ``PixelLayout`` as it will accomodate various sizes of each control in all platforms.
 
