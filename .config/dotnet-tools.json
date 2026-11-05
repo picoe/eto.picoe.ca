@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "isRoot": true,
+  "tools": {
+    "mcneel.owl": {
+      "version": "0.16.0",
+      "commands": [
+        "owl"
+      ],
+      "rollForward": false
+    }
+  }
+}

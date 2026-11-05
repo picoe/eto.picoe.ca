@@ -6,20 +6,7 @@
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
-    <header class="site-header">
-      <div class="site-header-inner">
-        <a class="brand" href="{{ relURL "/" }}">
-          <img src="{{ "img/logo.svg" | relURL }}" alt="Eto.Forms logo" />
-          <span>{{ site.Title }}</span>
-        </a>
-        <nav class="site-nav" aria-label="Primary navigation">
-          {{- $current := . -}}
-          {{- range site.Menus.main }}
-            {{- $isExternal := hasPrefix .URL "http" -}}
-          {{- end }}
-        </nav>
-      </div>
-    </header>
+    {{ partial "site-header.html" (dict "page" . "active" "") }}
     {{ block "hero" . }}{{ end }}
     <div class="site-body">
       {{ partial "sidebar.html" . }}

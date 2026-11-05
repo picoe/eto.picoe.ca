@@ -1,0 +1,7 @@
+{{- if eq .Params.chrome "header" -}}
+{{- $chrome := resources.Get "css/chrome.css" | minify | fingerprint -}}
+<link rel="stylesheet" href="{{ $chrome.RelPermalink }}" integrity="{{ $chrome.Data.Integrity }}" />
+{{ partial "site-header.html" (dict "page" . "active" "api") }}
+{{- else -}}
+{{ partial "footer.html" . }}
+{{- end -}}
