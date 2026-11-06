@@ -138,11 +138,17 @@ img {
 }
 
 .sidebar-heading {
+  display: block;
   font-size: 0.9rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--color-muted);
   margin-bottom: 0.75rem;
+}
+
+a.sidebar-heading:hover,
+.sidebar-heading.current {
+  color: var(--color-primary-dark);
 }
 
 .sidebar-nav ul {

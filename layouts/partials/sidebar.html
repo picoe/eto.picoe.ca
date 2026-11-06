@@ -3,14 +3,9 @@
   {{- $root := site.GetPage (printf "/%s" $section) -}}
   {{- if $root -}}
     <aside class="site-sidebar">
-      <div class="sidebar-heading">{{ $root.Title }}</div>
+      <a class="sidebar-heading{{ if eq . $root }} current{{ end }}" href="{{ $root.RelPermalink }}">{{ $root.Title }}</a>
       <nav class="sidebar-nav" aria-label="{{ $root.Title }} navigation">
-        <ul>
-          <li class="{{ if eq . $root }}current{{ end }}">
-            <a href="{{ $root.RelPermalink }}">{{ $root.LinkTitle }}</a>
-          </li>
-          {{ partial "sidebar-tree.html" (dict "node" $root "current" .) }}
-        </ul>
+        {{ partial "sidebar-tree.html" (dict "node" $root "current" .) }}
       </nav>
     </aside>
   {{- end -}}
