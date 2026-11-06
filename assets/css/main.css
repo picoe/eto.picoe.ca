@@ -208,20 +208,163 @@ a.sidebar-heading:hover,
   margin-top: 2.5rem;
 }
 
-.content-body pre {
-  background: #0f172a;
-  color: #f1f5f9;
-  padding: 1rem;
-  border-radius: 0.75rem;
-  overflow-x: auto;
-  font-size: 0.9rem;
-}
-
 .content-body code {
   font-family: "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-  background: rgba(15, 23, 42, 0.08);
-  padding: 0.1rem 0.35rem;
+  font-size: 0.88em;
+  background: var(--code-inline-bg);
+  padding: 0.12rem 0.38rem;
   border-radius: 0.35rem;
+}
+
+.content-body pre {
+  margin: 0;
+  padding: 1rem 1.25rem;
+  overflow-x: auto;
+  font-size: 0.86rem;
+  line-height: 1.6;
+  background: var(--code-bg);
+  color: var(--code-text);
+  tab-size: 4;
+}
+
+.content-body pre code {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  font-size: inherit;
+}
+
+.code-block,
+.code-tabs {
+  margin: 1.5rem 0;
+  border: 1px solid var(--code-border);
+  border-radius: 0.75rem;
+  background: var(--code-bg);
+  overflow: hidden;
+}
+
+.code-tabs .code-block {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+}
+
+.code-block-bar,
+.code-tabs-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-height: 2.25rem;
+  padding: 0 0.5rem 0 1rem;
+  background: var(--code-bar-bg);
+  border-bottom: 1px solid var(--code-border);
+  font-size: 0.78rem;
+}
+
+.code-block-label {
+  flex: 1;
+  color: var(--color-muted);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.code-tabs-bar {
+  padding: 0 0.5rem;
+  overflow-x: auto;
+}
+
+/* Tabs show the language, so blocks inside them (and unlabelled ones) float just the copy button. */
+.code-tabs.has-tabs .code-block-bar,
+.code-block.no-label .code-block-bar {
+  position: absolute;
+  top: 0.3rem;
+  right: 0.5rem;
+  min-height: 0;
+  padding: 0;
+  background: none;
+  border: 0;
+}
+
+.code-tabs.has-tabs .code-block,
+.code-block.no-label {
+  position: relative;
+}
+
+.code-tabs.has-tabs .code-block-label {
+  display: none;
+}
+
+.code-tabs.has-tabs .code-block pre,
+.code-block.no-label pre {
+  padding-right: 5rem;
+}
+
+.code-tab {
+  position: relative;
+  padding: 0.55rem 0.75rem;
+  border: 0;
+  background: none;
+  color: var(--color-muted);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.code-tab:hover {
+  color: var(--color-text);
+}
+
+.code-tab[aria-selected="true"] {
+  color: var(--color-primary-dark);
+}
+
+.code-tab[aria-selected="true"]::after {
+  content: "";
+  position: absolute;
+  left: 0.5rem;
+  right: 0.5rem;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--color-primary-dark);
+}
+
+.code-copy {
+  margin-left: auto;
+  padding: 0.2rem 0.55rem;
+  border: 1px solid transparent;
+  border-radius: 0.4rem;
+  background: none;
+  color: var(--color-muted);
+  font: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.code-block:hover .code-copy,
+.code-copy:focus-visible,
+.code-copy.copied {
+  opacity: 1;
+}
+
+/* Touch screens have no hover, so keep it visible. */
+@media (hover: none) {
+  .code-copy {
+    opacity: 1;
+  }
+}
+
+.code-copy:hover {
+  color: var(--color-text);
+  border-color: var(--code-border);
+  background: var(--code-bg);
+}
+
+.code-copy.copied {
+  color: var(--color-primary-dark);
 }
 
 .content-body table {

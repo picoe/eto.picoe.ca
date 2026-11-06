@@ -1,0 +1,24 @@
+{{- /* Fenced code with a label bar and copy button. Override the label with ```cs {title="MyForm.cs"}. */ -}}
+{{- $names := dict
+  "cs" "C#" "csharp" "C#" "c#" "C#"
+  "vb" "VB.NET" "vbnet" "VB.NET"
+  "fs" "F#" "fsharp" "F#"
+  "py" "Python" "python" "Python"
+  "xml" "XML" "xaml" "XAML" "json" "JSON"
+  "sh" "Shell" "bash" "Shell" "zsh" "Shell" "shell" "Shell"
+  "powershell" "PowerShell" "ps1" "PowerShell"
+-}}
+{{- /* Same language under different fence names, so tab choices carry across blocks. */ -}}
+{{- $keys := dict "cs" "csharp" "c#" "csharp" "vbnet" "vb" "fs" "fsharp" "py" "python" "bash" "shell" "sh" "shell" "zsh" "shell" "ps1" "powershell" -}}
+{{- $lang := lower .Type -}}
+{{- $label := .Attributes.title | default (index $names $lang) | default (upper $lang) -}}
+{{- $key := index $keys $lang | default $lang -}}
+{{- /* Highlighter has no XAML lexer. */ -}}
+{{- $lexer := cond (eq $lang "xaml") "xml" $lang -}}
+<div class="code-block{{ if not $label }} no-label{{ end }}" data-lang="{{ $key }}" data-label="{{ index $names $lang | default (upper $lang) }}">
+  <div class="code-block-bar">
+    <span class="code-block-label">{{ $label }}</span>
+    <button type="button" class="code-copy" aria-label="Copy code">Copy</button>
+  </div>
+  {{ transform.Highlight .Inner $lexer .Options }}
+</div>

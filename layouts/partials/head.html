@@ -2,6 +2,8 @@
 {{- $description := .Params.description | default .Site.Params.siteDescription -}}
 {{- $chrome := resources.Get "css/chrome.css" | minify | fingerprint -}}
 {{- $style := resources.Get "css/main.css" | minify | fingerprint -}}
+{{- $syntax := resources.Get "css/syntax.css" | minify | fingerprint -}}
+{{- $code := resources.Get "js/code.js" | minify | fingerprint -}}
 <meta charset="utf-8" />
 {{ partial "theme-script.html" . }}
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -14,4 +16,6 @@
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="stylesheet" href="{{ $chrome.RelPermalink }}" integrity="{{ $chrome.Data.Integrity }}" />
 <link rel="stylesheet" href="{{ $style.RelPermalink }}" integrity="{{ $style.Data.Integrity }}" />
+<link rel="stylesheet" href="{{ $syntax.RelPermalink }}" integrity="{{ $syntax.Data.Integrity }}" />
+<script defer src="{{ $code.RelPermalink }}" integrity="{{ $code.Data.Integrity }}"></script>
 {{ hugo.Generator }}

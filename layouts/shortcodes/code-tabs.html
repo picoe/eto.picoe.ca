@@ -1,0 +1,6 @@
+{{- /* Shows the fenced blocks inside as tabs, one per language:
+       {{< code-tabs >}} ```cs ... ``` ```vb ... ``` {{< /code-tabs >}}
+       Picking a language switches every tab group on the site to it. */ -}}
+<div class="code-tabs">
+{{ .Inner | .Page.RenderString (dict "display" "block") }}
+</div>
