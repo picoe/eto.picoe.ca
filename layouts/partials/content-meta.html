@@ -3,15 +3,13 @@
   {{- $pieces = $pieces | append (printf "Last updated %s" (time.Format "Jan 2, 2006" .)) -}}
 {{- end }}
 {{- with .File }}
-  {{- $editURL := printf "https://github.com/picoe/eto.picoe.ca/edit/main/%s" .Path -}}
+  {{- $editURL := printf "https://github.com/picoe/eto.picoe.ca/edit/main/content/%s" .Path -}}
   {{- $pieces = $pieces | append (printf "<a href=\"%s\" target=\"_blank\" rel=\"noreferrer noopener\">Edit this page on GitHub</a>" $editURL) -}}
 {{- end }}
-{{- if gt (len $pieces) 0 }}
+{{- with $pieces }}
   <div class="content-meta">
-    {{- $first := index $pieces 0 -}}
-    <span>{{ $first }}</span>
-    {{- range after 1 $pieces }}
-      <span> • {{ . | safeHTML }}</span>
+    {{- range $i, $p := . }}
+      <span>{{ if $i }} • {{ end }}{{ $p | safeHTML }}</span>
     {{- end }}
   </div>
 {{- end }}
