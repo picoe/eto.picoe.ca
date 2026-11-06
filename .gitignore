@@ -497,7 +497,6 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
-content/api/Eto
 
 # Owl model, written by build.sh
 .owl/

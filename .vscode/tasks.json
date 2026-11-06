@@ -42,12 +42,6 @@
             "command": "(sleep 2 && open http://localhost:1313/) & hugo server --disableFastRender",
             "isBackground": true,
             "problemMatcher": []
-        },
-        {
-            "label": "build-api",
-            "type": "shell",
-            "command": "rm -rf artifacts/apidocs && dotnet build GenerateApiDocs/GenerateApiDocs.slnx",
-            "problemMatcher": []
         }
     ]
 }

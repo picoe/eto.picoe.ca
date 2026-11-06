@@ -35,7 +35,6 @@ This builds the site with Hugo, then the API reference with [Owl](https://github
 | `assets/css/main.css` | Global styles compiled and fingerprinted by Hugo Pipes. |
 | `assets/css/chrome.css` | Header and footer styles, shared with the API pages. |
 | `static/` | Images and other assets copied as-is to the final site. |
-| `GenerateApiDocs/` | The previous API generator, kept for now. |
 
 ## Updating the API reference
 
