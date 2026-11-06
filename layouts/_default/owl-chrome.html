@@ -1,7 +1,10 @@
 {{- if eq .Params.chrome "header" -}}
 {{- $chrome := resources.Get "css/chrome.css" | minify | fingerprint -}}
 <link rel="stylesheet" href="{{ $chrome.RelPermalink }}" integrity="{{ $chrome.Data.Integrity }}" />
-{{ partial "site-header.html" (dict "page" . "active" "api") }}
+{{- $theme := resources.Get "css/owl-theme.css" | minify | fingerprint }}
+<link rel="stylesheet" href="{{ $theme.RelPermalink }}" integrity="{{ $theme.Data.Integrity }}" />
+{{ partial "theme-script.html" . }}
+{{ partial "site-header.html" (dict "page" . "active" "api" "owl" true) }}
 {{- else -}}
 {{ partial "footer.html" . }}
 {{- end -}}

@@ -1,0 +1,28 @@
+{{- /* Applies the saved theme before first paint. Sets the same attributes Owl's pages read, so the
+       one choice covers the docs and the API reference. */ -}}
+<script>
+(function () {
+  var KEY = 'eto-theme';
+  var root = document.documentElement;
+  var light = window.matchMedia ? matchMedia('(prefers-color-scheme: light)') : null;
+  function apply(pref) {
+    if (pref !== 'light' && pref !== 'dark') pref = 'system';
+    root.setAttribute('data-theme-pref', pref);
+    root.setAttribute('data-theme', pref !== 'system' ? pref : (light && light.matches ? 'light' : 'dark'));
+  }
+  var saved = null;
+  try { saved = localStorage.getItem(KEY); } catch (e) {}
+  apply(saved);
+  if (light && light.addEventListener) {
+    light.addEventListener('change', function () {
+      if (root.getAttribute('data-theme-pref') === 'system') apply('system');
+    });
+  }
+  window.etoTheme = {
+    set: function (pref) {
+      apply(pref);
+      try { localStorage.setItem(KEY, root.getAttribute('data-theme-pref')); } catch (e) {}
+    }
+  };
+})();
+</script>

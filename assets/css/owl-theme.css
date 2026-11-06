@@ -1,0 +1,81 @@
+/* Owl's API pages in the site's palette. Loaded after Owl's own stylesheet, so these win. */
+:root[data-theme="dark"] {
+  --bg: #0f172a;
+  --bg-home: #0f172a;
+  --bg2: #111828;
+  --bg3: #18223a;
+  --bg4: #243044;
+  --border: #1d2739;
+  --border2: #243044;
+  --text: #f4f6fb;
+  --text2: #e2e8f0;
+  --text3: #94a3b8;
+  --text4: #64748b;
+  --card-bg: #111828;
+  --card-border: #243044;
+  --card-hover: #152036;
+  --card-detail: #0c1322;
+  --card-split: #1c2639;
+  --fullname: #64748b;
+  --flash: #3fb4d6;
+  --accent: #1f9bbd;
+  --scrollbar: #243044;
+  --ext-ref: #94a3b8;
+
+  --nav-bg: #111828;
+  --nav-fg: #f4f6fb;
+  --nav-field: rgba(148, 163, 184, 0.14);
+  --nav-focus: rgba(148, 163, 184, 0.24);
+  --nav-hover: rgba(148, 163, 184, 0.10);
+  --nav-dim: rgba(244, 246, 251, 0.6);
+}
+
+:root[data-theme="light"] {
+  --bg: #f8fbfd;
+  --bg-home: #ffffff;
+  --bg2: #ffffff;
+  --bg3: #f1f5f9;
+  --bg4: #e2e8f0;
+  --border: #e2e8f0;
+  --border2: #cbd5e1;
+  --text: #1f2933;
+  --text2: #334155;
+  --text3: #5f6c80;
+  --text4: #94a3b8;
+  --card-bg: #ffffff;
+  --card-border: #e2e8f0;
+  --card-hover: #f8fbfd;
+  --card-detail: #fbfdfe;
+  --card-split: #eef2f6;
+  --fullname: #94a3b8;
+  --flash: #1f9bbd;
+  --accent: #1f9bbd;
+  --scrollbar: #cbd5e1;
+  --ext-ref: #5f6c80;
+
+  --nav-bg: #ffffff;
+  --nav-fg: #1f2933;
+  --nav-field: rgba(15, 23, 42, 0.06);
+  --nav-focus: rgba(15, 23, 42, 0.10);
+  --nav-hover: rgba(15, 23, 42, 0.06);
+  --nav-dim: rgba(31, 41, 51, 0.55);
+}
+
+body {
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+}
+
+.site-chrome-header #search {
+  width: 14rem;
+}
+
+.member,
+.cat-doc,
+.nav-card {
+  border-radius: 0.75rem;
+}
+
+pre,
+.cat-doc pre {
+  border-radius: 0.6rem;
+}

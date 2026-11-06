@@ -23,6 +23,25 @@
   }
 }
 
+/* On the API pages, follow Owl's theme switch rather than the system setting. */
+:root[data-theme="light"] {
+  --color-bg: #f8fbfd;
+  --color-surface: #ffffff;
+  --color-border: #e2e8f0;
+  --color-text: #1f2933;
+  --color-muted: #5f6c80;
+  --shadow-soft: 0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+:root[data-theme="dark"] {
+  --color-bg: #0f172a;
+  --color-surface: #111828;
+  --color-border: #243044;
+  --color-text: #f4f6fb;
+  --color-muted: #94a3b8;
+  --shadow-soft: 0 4px 18px rgba(0, 0, 0, 0.45);
+}
+
 .site-header,
 .site-footer {
   font-family: "Inter", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
@@ -50,13 +69,65 @@
 }
 
 .site-header-inner {
-  max-width: 1200px;
-  margin: 0 auto;
+  /* Full width on every page, so the links sit in the same place on the docs and the API pages. */
   padding: 0.5rem 1.5rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+}
+
+.site-header-start,
+.site-header-end {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  min-width: 0;
+}
+
+.site-header-start {
+  gap: 0.75rem;
+}
+
+.theme-toggle {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+}
+
+.theme-toggle button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: none;
+  color: var(--color-muted);
+  cursor: pointer;
+}
+
+.theme-toggle button:hover {
+  color: var(--color-text);
+}
+
+.theme-toggle button[aria-checked="true"] {
+  background: rgba(119, 207, 230, 0.18);
+  color: var(--color-primary-dark);
+}
+
+.theme-toggle svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .brand {
@@ -70,6 +141,8 @@
 .brand img {
   height: 40px;
   width: 40px;
+  /* Own layer: Safari drops the logo's round mask when Owl's search animates in the same header. */
+  transform: translateZ(0);
 }
 
 .site-nav {

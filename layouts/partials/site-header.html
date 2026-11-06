@@ -1,21 +1,31 @@
-{{- /* Pass "active" to mark a menu entry for a page Hugo doesn't build, such as the Owl API pages. */ -}}
+{{- /* Pass "active" to mark a menu entry for a page Hugo doesn't build, and "owl" to leave marks
+       where Owl puts its sidebar toggle and search on the API pages. */ -}}
 {{- $page := .page -}}
 {{- $active := .active -}}
+{{- $owl := .owl -}}
 <header class="site-header">
   <div class="site-header-inner">
-    <a class="brand" href="{{ relURL "/" }}">
-      <img src="{{ "img/logo.svg" | relURL }}" alt="Eto.Forms logo" />
-      <span>{{ site.Title }}</span>
-    </a>
-    <nav class="site-nav" aria-label="Primary navigation">
-      {{- range site.Menus.main }}
-        {{- $isExternal := hasPrefix .URL "http" -}}
-        {{- $isActive := or (eq .Identifier $active) (and (not $isExternal) (hasPrefix $page.RelPermalink .URL)) -}}
-        {{- $class := slice -}}
-        {{- if $isActive }}{{ $class = $class | append "active" }}{{ end -}}
-        {{- if eq .Identifier "github" }}{{ $class = $class | append "github-link" }}{{ end }}
-        <a href="{{ .URL | relURL }}"{{ with $class }} class="{{ delimit . " " }}"{{ end }}{{ if $isExternal }} rel="noopener"{{ end }}>{{ .Name }}</a>
-      {{- end }}
-    </nav>
+    <div class="site-header-start">
+      {{- if $owl }}{{ "<!-- owl:sidebar-toggle -->" | safeHTML }}{{ end }}
+      <a class="brand" href="{{ relURL "/" }}">
+        <img src="{{ "img/logo.svg" | relURL }}" alt="Eto.Forms logo" />
+        <span>{{ site.Title }}</span>
+      </a>
+    </div>
+    <div class="site-header-end">
+      {{- /* Before the nav, so the nav keeps its place between the docs and the API pages. */ -}}
+      {{- if $owl }}{{ "<!-- owl:search -->" | safeHTML }}{{ end }}
+      <nav class="site-nav" aria-label="Primary navigation">
+        {{- range site.Menus.main }}
+          {{- $isExternal := hasPrefix .URL "http" -}}
+          {{- $isActive := or (eq .Identifier $active) (and (not $isExternal) (hasPrefix $page.RelPermalink .URL)) -}}
+          {{- $class := slice -}}
+          {{- if $isActive }}{{ $class = $class | append "active" }}{{ end -}}
+          {{- if eq .Identifier "github" }}{{ $class = $class | append "github-link" }}{{ end }}
+          <a href="{{ .URL | relURL }}"{{ with $class }} class="{{ delimit . " " }}"{{ end }}{{ if $isExternal }} rel="noopener"{{ end }}>{{ .Name }}</a>
+        {{- end }}
+      </nav>
+      {{ partial "theme-toggle.html" . }}
+    </div>
   </div>
 </header>

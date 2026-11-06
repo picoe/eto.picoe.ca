@@ -75,6 +75,10 @@ siteDescription = "Documentation and API reference for Eto.Forms, the native cro
     url = "https://github.com/picoe/Eto"
     weight = 3
 
+[minify.tdewolff.html]
+  # Keeps the <!-- owl:... --> marks in the API header snippet that Owl fills in.
+  keepComments = true
+
 [markup]
   [markup.goldmark]
     [markup.goldmark.renderer]
