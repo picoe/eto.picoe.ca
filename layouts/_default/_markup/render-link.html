@@ -1,0 +1,14 @@
+{{- /* Relative links are written as file paths (as on GitHub), so map them to the page they name. */ -}}
+{{- $dest := .Destination -}}
+{{- $u := urls.Parse $dest -}}
+{{- if and (not $u.Scheme) $u.Path (not (hasPrefix $u.Path "/")) .Page.File -}}
+  {{- $target := path.Join "/" .Page.File.Dir (strings.TrimSuffix ".md" $u.Path) -}}
+  {{- with .Page.GetPage $target -}}
+    {{- $dest = .RelPermalink -}}
+    {{- with $u.Fragment }}{{ $dest = printf "%s#%s" $dest . }}{{ end -}}
+  {{- else -}}
+    {{- warnf "%s: no page for link %q" $.Page.File.Path $.Destination -}}
+  {{- end -}}
+{{- end -}}
+<a href="{{ $dest | safeURL }}"{{ with .Title }} title="{{ . }}"{{ end }}>{{ .Text | safeHTML }}</a>
+{{- /* Trim trailing newline so inline links don't gain a space. */ -}}
