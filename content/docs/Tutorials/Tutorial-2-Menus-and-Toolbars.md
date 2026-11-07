@@ -97,4 +97,4 @@ ToolBar = new ToolBar
 
 Set `Image` on a command to show an icon in the toolbar, e.g. `Image = Bitmap.FromResource("MyApp.Images.ClickMe.png")` for an embedded resource.
 
-Next: [Tutorial 3 Layout and Data Binding](./Tutorial-3-Table-Layout)
+Next: [Tutorial 3 Layout](./Tutorial-3-Table-Layout)
