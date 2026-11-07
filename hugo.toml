@@ -13,26 +13,35 @@ disableKinds = ["taxonomy", "term"]
 
 [params]
 tagline = "Native Cross Platform UI made easy."
-heroCTALabel = "Get Started in 5 Minutes ⏱️"
+heroCTALabel = "Get Started"
 heroCTAURL = "/docs/quickstart/"
 heroDescription = "Eto.Forms lets you build native desktop applications with a single, shared .NET codebase."
 githubURL = "https://github.com/picoe/Eto"
 siteDescription = "Documentation and API reference for Eto.Forms, the native cross platform UI toolkit."
+installCommand = """dotnet new install Eto.Forms.Templates
+dotnet new etoapp -o MyApp
+cd MyApp
+dotnet run"""
+
+  # Shown beside the code sample on the home page, all running that sample.
+  [[params.screenshots]]
+  platform = "macOS"
+  image = "/img/screenshot-macos.png"
 
   [[params.featureCards]]
-  title = "Easy to Use"
+  title = "Write UI Your Way"
   icon = "/img/eto-easy.svg"
-  body = "Eto.Forms makes building cross-platform desktop apps simple. With a clean API and intuitive design, you can create powerful UIs in just a few lines of C#."
+  body = "Build your UI in C#, VB.NET or F#, or in XAML or JSON. Layouts like `StackLayout` and `TableLayout` size themselves, so there's no pixel pushing."
 
   [[params.featureCards]]
   title = "Native on Every Platform"
   icon = "/img/eto-native.svg"
-  body = "Write your UI once, and Eto.Forms makes it look and feel right at home on Windows, macOS, and Linux — using each platform's native widgets."
+  body = "Each control is the platform's own: WPF or WinForms on Windows, Cocoa on macOS and GTK on Linux. Your app looks and behaves like it belongs."
 
   [[params.featureCards]]
-  title = "Flexible and Extensible"
+  title = "Drop to Native When You Need To"
   icon = "/img/eto-flexible.svg"
-  body = "Extend controls, integrate with existing libraries, or design your own — all while keeping your core code portable."
+  body = "Reach the underlying native control from any Eto control, embed Eto in an existing app, or write your own custom controls."
 
 [[params.footerColumns]]
   title = "Docs"

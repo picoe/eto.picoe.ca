@@ -92,11 +92,84 @@ img {
   box-shadow: var(--shadow-soft);
 }
 
+.cta-btn.secondary {
+  background: transparent;
+  color: var(--color-primary-dark);
+  border: 1px solid var(--color-primary-dark);
+  box-shadow: none;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.hero-install {
+  max-width: 520px;
+  margin: 2rem auto 0;
+  text-align: left;
+}
+
+.hero-install .code-block {
+  margin: 0;
+}
+
+.hero-badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.75rem;
+  list-style: none;
+  padding: 0;
+  margin: 1.25rem 0 0;
+  font-size: 0.9rem;
+}
+
+.hero-badges img {
+  display: block;
+}
+
+.showcase {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 2rem;
+  align-items: center;
+}
+
+.showcase .code-tabs {
+  margin: 0;
+}
+
+.showcase-shots {
+  margin: 0;
+  text-align: center;
+}
+
+.showcase-shots img {
+  border-radius: 10px;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.25);
+}
+
+.showcase-shots figcaption {
+  margin: 0.5rem 0 1.25rem;
+  color: var(--color-muted);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 800px) {
+  .showcase {
+    grid-template-columns: 1fr;
+  }
+}
+
 .feature-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1.5rem;
-  padding: 3rem 1.5rem;
+  padding: 3rem 0;
   max-width: 1100px;
   margin: 0 auto;
 }
