@@ -1,0 +1,11 @@
+{{- /* Whole-site search box. Both indexes come from build.sh, so `hugo server` has neither. */ -}}
+{{- $js := resources.Get "js/search.js" | minify | fingerprint -}}
+<div class="site-search" role="search" data-pagefind-url="{{ "pagefind/pagefind.js" | relURL }}"
+     data-api-index-url="{{ "api/assets/search.json" | relURL }}">
+  <svg class="site-search-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5l5 5"/></svg>
+  <input type="search" id="site-search-input" placeholder="Search" aria-label="Search the site" autocomplete="off" spellcheck="false"
+         role="combobox" aria-expanded="false" aria-controls="site-search-results" aria-autocomplete="list" />
+  <kbd class="site-search-key" aria-hidden="true">/</kbd>
+  <div class="site-search-results" id="site-search-results" role="listbox" aria-label="Search results" hidden></div>
+</div>
+<script defer src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}"></script>

@@ -1,0 +1,16 @@
+# Settings for the whole-site search index, run by build.sh after the site and the API are built.
+site: public
+root_selector: main
+# Owl's per-member example, What's New, search and references pages repeat what the type pages say.
+glob: "{*.html,docs/**/*.html,api/*.html,api/type/**/*.html,api/namespace/**/*.html,api/assembly/**/*.html}"
+# Page furniture, and members every control inherits, which would otherwise match on every page.
+exclude_selectors:
+  - .site-chrome
+  - .site-footer
+  - .main-sticky
+  - .derived-tree
+  - .filter-bar
+  - .member-toggles
+  - .member.inherited
+  - .sidebar
+  - .page-kind

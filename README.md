@@ -14,7 +14,7 @@ hugo server --disableFastRender
 
 The server prints a local URL (usually `http://localhost:1313`). Changes inside the `content/`, `layouts/`, `assets/`, or `static/` folders hot-reload automatically.
 
-`hugo server` doesn't include the API reference. To preview it, run `./build.sh` and serve `public/`, or run `dotnet tool run owl serve eto/src/Eto/Eto.csproj` on its own.
+`hugo server` doesn't include the API reference. To preview it, run `./build.sh` and serve `public/`, or run `dotnet run --project owl/owl -- serve eto/src/Eto/Eto.csproj` on its own.
 
 ## Production build
 
@@ -22,7 +22,7 @@ The server prints a local URL (usually `http://localhost:1313`). Changes inside 
 ./build.sh
 ```
 
-This builds the site with Hugo, then the API reference with [Owl](https://github.com/mcneel/owl) into `public/api`, using Eto from the `eto` submodule. Deploy the contents of `public/`. Set `OWL_DIR` to a local Owl checkout to use that instead of the pinned version in `.config/dotnet-tools.json`.
+This builds the site with Hugo, then the API reference with [Owl](https://github.com/mcneel/owl) into `public/api`, using Eto from the `eto` submodule and Owl from the `owl` submodule. It finishes by building the header's search index with [Pagefind](https://pagefind.app) (settings in `pagefind.yml`), so search only works in a full build. Deploy the contents of `public/`. Set `OWL_DIR` to another Owl checkout to use that instead.
 
 ## Repository layout
 
@@ -30,6 +30,7 @@ This builds the site with Hugo, then the API reference with [Owl](https://github
 | --- | --- |
 | `content/docs` | Markdown source for the guides, tutorials, and contributing docs. `_index.md` files describe section landing pages. |
 | `eto` | Eto submodule, checked out at the release the API reference documents. |
+| `owl` | Owl submodule, which builds the API reference. |
 | `content/owl-*.md` | The site header and footer as bare snippets, which `build.sh` passes to Owl for the API pages. |
 | `layouts/` | Hugo templates (base layout, navigation, sidebar, etc.). |
 | `assets/css/main.css` | Global styles compiled and fingerprinted by Hugo Pipes. |

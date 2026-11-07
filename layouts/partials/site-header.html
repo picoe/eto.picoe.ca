@@ -1,5 +1,5 @@
 {{- /* Pass "active" to mark a menu entry for a page Hugo doesn't build, and "owl" to leave marks
-       where Owl puts its sidebar toggle and search on the API pages. */ -}}
+       where Owl puts its sidebar toggle and API pickers on the API pages. */ -}}
 {{- $page := .page -}}
 {{- $active := .active -}}
 {{- $owl := .owl -}}
@@ -14,7 +14,8 @@
     </div>
     <div class="site-header-end">
       {{- /* Before the nav, so the nav keeps its place between the docs and the API pages. */ -}}
-      {{- if $owl }}{{ "<!-- owl:search -->" | safeHTML }}{{ end }}
+      {{ partial "site-search.html" . }}
+      {{- if $owl }}{{ "<!-- owl:pickers -->" | safeHTML }}{{ end }}
       <nav class="site-nav" aria-label="Primary navigation">
         {{- range site.Menus.main }}
           {{- $isExternal := hasPrefix .URL "http" -}}
