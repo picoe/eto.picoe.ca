@@ -10,6 +10,7 @@ The Eto.Forms Framework is a cross-platform User Interface framework that uses t
 ## Topics
 
 - [Quick Start](./QuickStart) - Get up and running with Eto.Forms
+- [Developer Extensions](./DevExtensions) - Live preview, IntelliSense and templates for Visual Studio, VS Code and Rider
 - [Tutorials](./Tutorials) - Learn how to use Eto.Forms with step by step examples
 - [Controls](./Controls) - List of all controls and containers supported out of the box by Eto.Forms
 - [Data Binding](./Guides/Data-Binding) - How to use data binding and MVVM with Eto.Forms controls.

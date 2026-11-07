@@ -1,6 +1,6 @@
 ---
 title: "Controls"
-weight: 4
+weight: 5
 ---
 
 Eto.Forms comes with a standard set of built-in controls that work across all supported platforms.  Controls can be subclassed to override or implement behaviour.  Each control has an implementation for each supported platform, which can be customized or replaced entirely if a particular implementation is not suitable for your use.

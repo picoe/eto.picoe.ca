@@ -1,6 +1,6 @@
 ---
 title: "Tutorials"
-weight: 3
+weight: 4
 ---
 
 * [Quick Start](../QuickStart) - Shows how to create your first project.

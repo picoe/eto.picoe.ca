@@ -1,6 +1,6 @@
 ---
 title: "Guides"
-weight: 5
+weight: 6
 ---
 
 Deep dives for common Eto.Forms tasks:

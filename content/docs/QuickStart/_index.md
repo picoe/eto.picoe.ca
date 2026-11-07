@@ -7,15 +7,7 @@ The easiest way to get started with Eto.Forms is to use the Visual Studio extens
 
 ## Visual Studio for Windows
 
-Make sure you have installed the latest Visual Studio updates.  Then, install the extension by following these steps (or download for [VS 2022](https://marketplace.visualstudio.com/items?itemName=CurtisWensley.EtoDevExtensionVisualStudio2022)):
-
-1. Open **Extensions > Manage Extensions**
-2. Select **Online > Visual Studio Marketplace**
-3. In the search box, type ``Eto.Forms``
-4. Select **Eto.Forms Visual Studio Addin** and click **Download**
-5. Restart Visual Studio to install the extension.
-
-Now you can easily create a new project using the **Eto.Forms Application** template.
+Install the [Eto.Forms extension for Visual Studio](../DevExtensions/Visual-Studio.md), then create a new project using the **Eto.Forms Application** template.
 
 ## Command Line with dotnet new
 
@@ -38,7 +30,7 @@ You can then run using `dotnet run` in the target folders for the platform you a
 
 ## VS Code
 
-VS Code is a great alternative to using VS for Mac or Windows and supports .NET Core and mono debugging.
+VS Code is a great cross-platform alternative to Visual Studio. Install the [Eto.Forms Designer extension](../DevExtensions/VS-Code.md) for a live preview and IntelliSense, and create projects with `dotnet new` as above.
 
 For Eto.Mac targets, you need to set the "program" variable to the executable within the .app bundle, something like `${workspaceFolder}/MyApp.Mac/bin/Debug/net8.0/MyApp.Mac.app/Contents/MacOS/MyApp.Mac`
 
@@ -47,6 +39,6 @@ For Eto.Mac targets, you need to set the "program" variable to the executable wi
 JetBrains Rider is a great cross-platform alternative for Visual Studio.  
 With the [.NET Core SDK](https://www.microsoft.com/net/download) installed, run the following from the command line: `dotnet new -i "Eto.Forms.Templates::*"` 
 
-Now you can easily create a new project using the **Eto Application** template.
+Now you can easily create a new project using the **Eto Application** template. Install the [Eto.Forms Designer plugin](../DevExtensions/Rider.md) for a live preview and IntelliSense.
 
 For Eto.Mac targets, you need to set the startup program to the executable within the .app bundle, something like `bin/Debug/net8.0/MyApp.Mac.app/Contents/MacOS/MyApp.Mac`.
