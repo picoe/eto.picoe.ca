@@ -2,131 +2,99 @@
 title: "Tutorial 2 - Menus and Toolbars"
 ---
 
-Most desktop platforms have similar features and functionality with menus and toolbars, with a few exceptions:
+This tutorial builds on [Tutorial 1](./Tutorial-1-Hello-Eto.Forms) and explains the menu and toolbar the template creates, then adds to them.
 
-* Mac OS X applications typically only have a single toolbar
-* Mac OS X applications require certain menu items in your app for standard actions to work, such as Cut/Copy/Paste/Undo/Redo/etc.
+Menus and toolbars work much the same on every desktop platform, with a few macOS differences that Eto.Forms handles for you:
 
-Eto.Forms makes dealing with these exceptions very easy.
+- macOS has an application menu (named after your app) that holds About, Preferences and Quit.
+- macOS needs certain menu items, like Cut, Copy, Paste and Undo, for those standard actions to work. Eto.Forms adds them unless you turn this off.
 
-## Command vs. ToolItem & MenuItem
+## Commands
 
-In Eto.Forms, you can create your toolbars and menus directly using the ``ToolItem`` and ``MenuItem`` subclasses. However, you can also use [Commands](https://github.com/picoe/Eto/blob/develop/src/Eto/Forms/Command.cs) to create them instead. This has a few advantages:
+The template builds its menu and toolbar from `Command` objects. A command holds the text, shortcut and action in one place, so the same command can appear in both the menu and the toolbar, and enabling or disabling it updates both.
 
-* Command code is separated from menu or toolbar button UI
-* You can share the same command between the menu and toolbar
+```csharp
+var clickMe = new Command { MenuText = "Click Me!", ToolBarText = "Click Me!" };
+clickMe.Executed += (sender, e) => MessageBox.Show(this, "I was clicked!");
+```
 
-## MenuItem types
+There are three kinds:
 
-* ``ButtonMenuItem`` - Click to trigger an event
-* ``CheckMenuItem`` - Toggle on or off
-* ``RadioMenuItem`` - Select from a group of options, supports multiple groups
-* ``SeparatorMenuItem`` - Logically group your menu items for better readability
+- `Command`: runs an action when clicked.
+- `CheckCommand`: toggles on or off.
+- `RadioCommand`: picks one of a group of options.
 
-## ToolItem types
+You can also add `ButtonMenuItem`, `CheckMenuItem`, `RadioMenuItem` and `SeparatorMenuItem` directly to menus, and `ButtonToolItem`, `CheckToolItem`, `RadioToolItem` and `SeparatorToolItem` to toolbars, when you don't need to share them.
 
-* ``ButtonToolItem`` - Click to trigger an event
-* ``CheckToolItem`` - Toggle on or off
-* ``RadioToolItem`` - Select from a group of options, supports only a *single group* in the toolbar.
-* ``SeparatorToolItem`` - Logically group your tool items for better readability with space or a divider
+## The menu bar
 
-## Command types
+This is the menu the template creates:
 
-* ``Command`` - Click to trigger an event
-* ``CheckCommand`` - Toggle on or off
-* ``RadioCommand`` - Select from a group of options
-
-## Adding a MenuBar and ToolBar to your form
-
-In this tutorial, we will start from [Tutorial 1 Hello Eto.Forms](./Tutorial-1-Hello-Eto.Forms)
-
-1. Create a new custom command to share between the menu and toolbar
-
-  ```csharp
-  public class MyCommand : Command
-  {
-    public MyCommand()
-    {
-      MenuText = "C&lick Me, Command";
-      ToolBarText = "Click Me";
-      ToolTip = "This shows a dialog for no reason";
-      //Image = Icon.FromResource ("MyResourceName.ico");
-      //Image = Bitmap.FromResource ("MyResourceName.png");
-      Shortcut = Application.Instance.CommonModifier | Keys.M;  // control+M or cmd+M
-    }
-  
-    protected override void OnExecuted(EventArgs e)
-    {
-      base.OnExecuted(e);
-  
-      MessageBox.Show(Application.Instance.MainForm, "You clicked me!", "Tutorial 2", MessageBoxButtons.OK);
-    }
-  }
-  ```
-
-2. Add your command to the File Menu in a MenuBar, and assign it to the form's Menu.
-
-  ```csharp
-  Menu = new MenuBar
-  {
+```csharp
+Menu = new MenuBar
+{
     Items =
     {
-      new ButtonMenuItem
-      { 
-        Text = "&File",
-        Items =
-        { 
-          // you can add commands or menu items
-          new MyCommand(),
-          // another menu item, not based off a Command
-          new ButtonMenuItem { Text = "Click Me, MenuItem" }
-        }
-      } 
-    }
-  }
-  ```
+        new SubMenuItem { Text = "&File", Items = { clickMe } },
+    },
+    ApplicationItems =
+    {
+        new ButtonMenuItem { Text = "&Preferences..." },
+    },
+    QuitItem = quitCommand,
+    AboutItem = aboutCommand
+};
+```
 
-3. Add a Quit menu item. *Note*  this is optional. On OS X, one will be added for you if you don't specify a Quit item (otherwise there is no easy way for the user to quit your application).
+- `Items` are the top-level menus. `&` marks the letter used for keyboard access on Windows and Linux.
+- `ApplicationItems` go in the application menu on macOS, and in the File menu on other platforms.
+- `QuitItem` and `AboutItem` are put in the right place for each platform. If you don't set `QuitItem`, macOS still gets one so users can quit your app.
 
-  ```csharp
-  Menu.QuitItem = new Command((sender, e) => Application.Instance.Quit())
-  { 
-    MenuText = "Quit", 
-    Shortcut = Application.Instance.CommonModifier | Keys.Q
-  };
-  ```
+## Add a View menu
 
-4. Add an About menu item to provide information about your app. This shows how to create a menu item directly, without using a command.
+Add a check command to keep the window on top, and radio commands to pick a size. Put these before the `Menu` is created:
 
-  ```csharp
-  var aboutItem = new ButtonMenuItem { Text = "About..." };
-  aboutItem.Click += (sender, e) =>
-  {
-    var dlg = new Dialog
-    { 
-      Content = new Label { Text = "About my app..." }, 
-      ClientSize = new Size(200, 200)
-    };
-    dlg.ShowModal(this);
-  };
-  Menu.AboutItem = aboutItem;
-  ```
+```csharp
+var alwaysOnTop = new CheckCommand { MenuText = "Always on &Top", ToolBarText = "On Top" };
+alwaysOnTop.CheckedChanged += (sender, e) => Topmost = alwaysOnTop.Checked;
 
-5. Create a ToolBar
+var small = new RadioCommand { MenuText = "&Small" };
+var large = new RadioCommand { MenuText = "&Large", Controller = small, Checked = true };
+small.CheckedChanged += (sender, e) => { if (small.Checked) ClientSize = new Size(400, 300); };
+large.CheckedChanged += (sender, e) => { if (large.Checked) ClientSize = new Size(800, 600); };
+```
 
-  ```csharp
-  ToolBar = new ToolBar
-  {
-    Items =
-    { 
-      new MyCommand(),
-      new SeparatorToolItem(),
-      new ButtonToolItem { Text = "Click Me, ToolItem" }
-    }
-  };
-  ```
+`Controller` groups radio commands together, so checking one unchecks the others.
 
-- [C# Source](https://github.com/picoe/Eto/blob/develop/samples/Tutorials/CSharp/Tutorial2/Main.cs)
-- [F# Source](https://github.com/picoe/Eto/blob/develop/samples/Tutorials/FSharp/Tutorial2/Program.fs)
+Then add a View menu to the menu bar's `Items`:
 
-Next: [Tutorial 3 Table Layout](./Tutorial-3-Table-Layout)
+```csharp
+new SubMenuItem
+{
+    Text = "&View",
+    Items = { alwaysOnTop, new SeparatorMenuItem(), small, large }
+},
+```
+
+## Shortcuts
+
+Set `Shortcut` on a command to give it a keyboard shortcut. Use `Application.Instance.CommonModifier` for the key users expect on each platform, Ctrl on Windows and Linux and Cmd on macOS:
+
+```csharp
+clickMe.Shortcut = Application.Instance.CommonModifier | Keys.K;
+```
+
+## The toolbar
+
+The toolbar takes the same commands:
+
+```csharp
+ToolBar = new ToolBar
+{
+    Items = { clickMe, new SeparatorToolItem(), alwaysOnTop }
+};
+```
+
+Set `Image` on a command to show an icon in the toolbar, e.g. `Image = Bitmap.FromResource("MyApp.Images.ClickMe.png")` for an embedded resource.
+
+Next: [Tutorial 3 Layout and Data Binding](./Tutorial-3-Table-Layout)

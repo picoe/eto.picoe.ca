@@ -1,98 +1,95 @@
 ---
-title: "Tutorial 3 - Table Layout"
+title: "Tutorial 3 - Layout and Data Binding"
 ---
 
-The ``TableLayout`` is the main layout for Eto.Forms to organize your controls.  It is far preferred over using a ``PixelLayout`` as it will accomodate various sizes of each control in all platforms.
+This tutorial builds a small sign-up form. It shows how to lay out a form so it fits every platform, and how to connect its controls to a view model with data binding.
 
-A TableLayout is somewhat similar to an HTML table, but with a few differences: 
+## Laying out a form
 
-1. A ``TableCell`` can only contain a single control, however that control can be another container, such as a TableLayout.
-2. The width of a column or height of a row is determined by the controls added to the column/row
-3. If you set the scaling on a column or row, it will share the remaining space of the TableLayout's container with all other scaled columns/rows equally.
+Controls are different sizes on each platform, so Eto.Forms layouts size them for you rather than placing them at fixed positions. Rows and columns fit their contents, and you choose which ones stretch to fill any extra space.
 
-## Simple Table
-
-In this tutorial, we will start from [Tutorial 1 Hello Eto.Forms](./Tutorial-1-Hello-Eto.Forms).
-
-This shows how to create a simple table with three columns and three rows.
-
-1. First, create a new TableLayout object.
-
-  ```csharp
-  var layout = new TableLayout();
-  ```
-
-2. Define the padding around the border of the table, and spacing between the cells of the table.
-
-  ```csharp
-  layout.Spacing = new Size(5, 5); // space between each cell
-  layout.Padding = new Padding(10, 10, 10, 10); // space around the table's sides
-  ```
-
-3. Add a new row with three labels, the first and second column set scaling of the width to true to share the remaining space of the container. The third column will auto size to the controls in the column.
-
-  ```csharp
-  layout.Rows.Add(new TableRow(
-    new TableCell(new Label { Text = "First Column" }, true),
-    new TableCell(new Label { Text = "Second Column" }, true),
-    new Label { Text = "Third Column" }
-  ));
-  ```
-
-4. Add another row with some data entry controls
-
-  ```csharp
-  layout.Rows.Add(new TableRow(
-    new TextBox { Text = "Some Text" },
-    new DropDown { Items = { "Item 1", "Item 2", "Item 3" } },
-    new CheckBox { Text = "A checkbox" }
-  ));
-  ```
-
-5. Add a final empty row that scales to fill the remaining height
-
-  ```csharp
-  layout.Rows.Add(new TableRow { ScaleHeight = true });
-    
-  // or, this is the same as doing:
-    
-  layout.Rows.Add(null);
-  ```
-
-6. Set the content of the form to use the layout
-
-  ```csharp
-  this.Content = layout;
-  ```
-
-## Declarative Approach
-
-The same table can be defined declaratively using the C# initializer pattern.
-This produces the exact same result but is more succinct and can be easier to read.
+The `TableLayout` lines controls up in rows and columns, like an HTML table. Replace the `Content` from [Tutorial 1](./Tutorial-1-Hello-Eto.Forms) with:
 
 ```csharp
+var nameBox = new TextBox();
+var emailBox = new TextBox();
+var newsletterBox = new CheckBox { Text = "Send me the newsletter" };
+var signUpButton = new Button { Text = "Sign Up" };
+
 Content = new TableLayout
 {
-  Spacing = new Size(5, 5), // space between each cell
-  Padding = new Padding(10, 10, 10, 10), // space around the table's sides
-  Rows =
-  {
-    new TableRow(
-      new TableCell(new Label { Text = "First Column" }, true), 
-      new TableCell(new Label { Text = "Second Column" }, true),
-      new Label { Text = "Third Column" }
-    ),
-    new TableRow(
-      new TextBox { Text = "Some text" },
-      new DropDown { Items = { "Item 1", "Item 2", "Item 3" } },
-      new CheckBox { Text = "A checkbox" }
-    ),
-    // by default, the last row & column will get scaled. This adds a row at the end to take the extra space of the form.
-    // otherwise, the above row will get scaled and stretch the TextBox/ComboBox/CheckBox to fill the remaining height.
-    new TableRow { ScaleHeight = true }
-  }
+    Padding = 10,             // space around the edge
+    Spacing = new Size(5, 5), // space between cells
+    Rows =
+    {
+        new TableRow("Name", new TableCell(nameBox, true)),
+        new TableRow("Email", emailBox),
+        new TableRow(null, newsletterBox),
+        null, // an empty row that takes up the remaining height
+        new TableRow(null, TableLayout.AutoSized(signUpButton))
+    }
 };
 ```
 
-- [C# Source](https://github.com/picoe/Eto/blob/develop/samples/Tutorials/CSharp/Tutorial3/Main.cs)
-- [F# Source](https://github.com/picoe/Eto/blob/develop/samples/Tutorials/FSharp/Tutorial3/Program.fs)
+A few things to note:
+
+- `new TableCell(nameBox, true)` makes the second column stretch with the window. The labels column stays as wide as its widest label.
+- A `null` row or cell is empty space that stretches. Without the `null` row, the last row would stretch instead.
+- `TableLayout.AutoSized` keeps the button at its natural size rather than filling the column.
+
+See [TableLayout](../Controls/TableLayout) for more, and [DynamicLayout](../Controls/DynamicLayout) and [StackLayout](../Controls/StackLayout) for other ways to arrange controls.
+
+## A view model
+
+Rather than reading values out of each control, put them in a view model and bind the controls to it. Add this class to your project:
+
+```csharp
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using Eto.Forms;
+
+public class SignUpModel : INotifyPropertyChanged
+{
+    string name;
+    public string Name
+    {
+        get => name;
+        set { name = value; OnPropertyChanged(); OnPropertyChanged(nameof(CanSignUp)); }
+    }
+
+    public string Email { get; set; }
+
+    public bool Newsletter { get; set; } = true;
+
+    public bool CanSignUp => !string.IsNullOrWhiteSpace(Name);
+
+    public RelayCommand SignUpCommand => new RelayCommand(() =>
+        MessageBox.Show($"Welcome, {Name}!"));
+
+    public event PropertyChangedEventHandler PropertyChanged;
+    void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+}
+```
+
+`INotifyPropertyChanged` lets the UI update when the model changes. Here, typing a name updates `CanSignUp`, which enables the button.
+
+## Binding the controls
+
+After creating the layout, bind each control to the model and set it as the form's `DataContext`:
+
+```csharp
+nameBox.TextBinding.BindDataContext((SignUpModel m) => m.Name);
+emailBox.TextBinding.BindDataContext((SignUpModel m) => m.Email);
+newsletterBox.CheckedBinding.BindDataContext((SignUpModel m) => m.Newsletter);
+signUpButton.BindDataContext(c => c.Enabled, (SignUpModel m) => m.CanSignUp);
+signUpButton.BindDataContext(c => c.Command, (SignUpModel m) => m.SignUpCommand);
+
+DataContext = new SignUpModel();
+```
+
+Every control inside the form shares its `DataContext`, so the bindings all use the same model. Typing in the text boxes updates the model, and changes to the model update the controls.
+
+If you write your UI in a `.xeto` file instead, the same bindings look like `<TextBox Text="{Binding Name}" />`, and the [live preview](../DevExtensions/Live-Preview.md#sample-data-in-the-preview) can fill them with sample data.
+
+See [Data Binding](../Guides/Data-Binding) for converting values, binding directions and more.

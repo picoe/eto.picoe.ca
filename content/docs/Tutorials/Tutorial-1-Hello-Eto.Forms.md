@@ -1,42 +1,81 @@
 ---
-title: "Tutorial 1 - Hello Eto.Forms"
+title: "Tutorial 1 - Your First App"
 ---
 
-This tutorial will teach you how to create a simple ["Hello World"](http://en.wikipedia.org/wiki/Hello_world_program) application using Eto.Forms
+This tutorial walks through the app the template creates, then adds a text box and a button to it.
 
-1. Follow [Quick Start](../QuickStart) to create your solution
+## Create the app
 
-2. Create a new class for your main form:
+Follow the [Quick Start](../QuickStart) to create a new app, choosing the **Code** form type in Visual Studio, or:
 
-  ```csharp
-  class MyForm : Eto.Forms.Form
-  {
-    public MyForm()
+```bash
+dotnet new etoapp -o MyApp
+```
+
+Run it with `dotnet run` (or F5 in your IDE) and you'll see a window with a menu, a toolbar and "Hello World!".
+
+## What the template gives you
+
+**Program.cs** starts the app. `Platform.Detect` picks the platform you built for, so the same code runs everywhere:
+
+```csharp
+[STAThread]
+static void Main(string[] args)
+{
+    var app = new Application(Eto.Platform.Detect);
+    app.Run(new MainForm());
+}
+```
+
+**MainForm.cs** is your main window. Its `Content` is the control shown inside the window, here a `StackLayout` that lists controls from top to bottom:
+
+```csharp
+Content = new StackLayout
+{
+    Padding = 10,
+    Items =
     {
-      // sets the client (inner) size of the window for your content
-      this.ClientSize = new Eto.Drawing.Size(600, 400);
-
-      this.Title = "Hello, Eto.Forms";
+        "Hello World!",
+        // add more controls here
     }
-  }
-  ```
+};
+```
 
-3. In your **Main()** method, create an `Application` object and run using your form (if you haven't used one of the project templates already):
+A string in a layout is shorthand for a `Label`. The rest of the constructor builds the menu and toolbar, which [Tutorial 2](./Tutorial-2-Menus-and-Toolbars) covers.
 
-  ```csharp
-  using System;
-  
-  class Startup
-  {
-    [STAThread]
-    public static void Main(string[] args)
+## Add some controls
+
+Replace the `Content` with a text box and a button that greets whoever's name is typed in:
+
+```csharp
+var nameBox = new TextBox { PlaceholderText = "Your name" };
+
+var helloButton = new Button { Text = "Say Hello" };
+helloButton.Click += (sender, e) => MessageBox.Show(this, $"Hello, {nameBox.Text}!");
+
+Content = new StackLayout
+{
+    Padding = 10,
+    Spacing = 5,
+    Items =
     {
-      new Eto.Forms.Application().Run(new MyForm());
+        "What's your name?",
+        nameBox,
+        helloButton
     }
-  }
-  ```
+};
+```
 
-- [C# Source](https://github.com/picoe/Eto/blob/develop/samples/Tutorials/CSharp/Tutorial1/Main.cs)
-- [F# Source](https://github.com/picoe/Eto/blob/develop/samples/Tutorials/FSharp/Tutorial1/Program.fs)
+Run the app again and try it out. Each control uses the native one for the platform, so it looks at home on Windows, macOS and Linux.
+
+## Other ways to write the UI
+
+The same form can be written in other ways. Pick one when you create the app:
+
+- **Code Preview** (`-m preview`): the layout goes in `MainForm.eto.cs`, which the [live preview](../DevExtensions/Live-Preview.md) can draw as you type.
+- **Xaml** (`-m xaml`): the layout goes in `MainForm.xeto`, with event handlers in `MainForm.xeto.cs`.
+- **Json** (`-m json`): the layout goes in `MainForm.jeto`, with event handlers in `MainForm.jeto.cs`.
+
+These tutorials use code, but every control and property works the same way in each.
 
 Next: [Tutorial 2 Menus and Toolbars](./Tutorial-2-Menus-and-Toolbars)
