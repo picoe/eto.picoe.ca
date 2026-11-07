@@ -37,7 +37,7 @@ public class MyCustomControl : Control
 }
 ```
 
-In your MonoMac platform assembly:
+In your Mac platform assembly:
 
 ```csharp
 public class MyCustomControlHandler : MacControl<NSTextField, MyCustomControl, MyCustomControl.ICallback>, MyCustomControl.IMyCustomControl

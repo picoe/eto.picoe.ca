@@ -14,7 +14,7 @@ Note that spaces delimit multiple styles, so your style identifiers should not i
 
 ## Example
 
-This example shows how to change the highlight style of a listview for MonoMac/Cocoa apps.  Each time a list box is created with the style of "main-list", it will execute the platform-specific code.
+This example shows how to change the highlight style of a list box on macOS.  Each time a list box is created with the style of "main-list", it will execute the platform-specific code.
 
 In your Eto.Forms UI code:
 
@@ -22,7 +22,7 @@ In your Eto.Forms UI code:
 var mylist = new ListBox { Style = "main-list" };
 ```
 
-In your OS X app (usually called before the application starts):
+In your Mac platform code (usually called before the application starts):
 
 ```csharp
 Eto.Style.Add<ListBoxHandler>("main-list", handler => {
