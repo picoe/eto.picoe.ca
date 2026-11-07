@@ -32,7 +32,7 @@ eto_ref=$(git -C eto describe --tags --exact-match 2>/dev/null || git -C eto rev
   --base /api \
   --site-url https://eto.picoe.ca \
   --source-refs "https://github.com/picoe/Eto/blob/$eto_ref" \
-  --api-versions 2.13,2.12,2.11,2.10,2.9 \
+  --api-versions 2.14,2.13,2.12,2.11,2.10,2.9 \
   --site-header public/owl/header.html \
   --site-footer public/owl/footer.html \
   --out public/api \
