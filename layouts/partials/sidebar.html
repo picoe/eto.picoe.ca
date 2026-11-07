@@ -8,5 +8,33 @@
         {{ partial "sidebar-tree.html" (dict "node" $root "current" .) }}
       </nav>
     </aside>
+    {{- /* Inline so the sidebar is positioned before first paint. */}}
+    <script>
+      (function () {
+        var KEY = 'eto-sidebar-scroll';
+        var bar = document.currentScript.previousElementSibling;
+        var saved = null;
+        try { saved = sessionStorage.getItem(KEY); sessionStorage.removeItem(KEY); } catch (e) {}
+        // Only when the sidebar scrolls on its own; on narrow screens it's part of the page.
+        if (bar.scrollHeight > bar.clientHeight) {
+          if (saved !== null) {
+            bar.scrollTop = +saved;
+          } else {
+            // Arrived from elsewhere: centre the current item if it's out of view.
+            var cur = bar.querySelector('li.current > a');
+            if (cur) {
+              var top = cur.getBoundingClientRect().top - bar.getBoundingClientRect().top + bar.scrollTop;
+              if (top < bar.scrollTop || top + cur.offsetHeight > bar.scrollTop + bar.clientHeight)
+                bar.scrollTop = top - (bar.clientHeight - cur.offsetHeight) / 2;
+            }
+          }
+        }
+        bar.addEventListener('click', function (e) {
+          if (e.target.closest('a')) {
+            try { sessionStorage.setItem(KEY, bar.scrollTop); } catch (e) {}
+          }
+        });
+      })();
+    </script>
   {{- end -}}
 {{- end -}}
