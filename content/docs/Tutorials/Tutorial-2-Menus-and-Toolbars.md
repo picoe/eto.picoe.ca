@@ -28,9 +28,11 @@ You can also add `ButtonMenuItem`, `CheckMenuItem`, `RadioMenuItem` and `Separat
 
 ## The menu bar
 
-This is the menu the template creates:
+This is the menu the template creates. In XAML and JSON it uses menu items with `Click` handlers in the code behind, rather than commands:
 
-```csharp
+{{< code-tabs >}}
+
+```csharp {title="MainForm.cs"}
 Menu = new MenuBar
 {
     Items =
@@ -46,13 +48,53 @@ Menu = new MenuBar
 };
 ```
 
+```xaml {title="MainForm.xeto"}
+<Form.Menu>
+  <MenuBar>
+    <SubMenuItem Text="&amp;File">
+      <ButtonMenuItem Text="Click Me!" Click="HandleClickMe" />
+    </SubMenuItem>
+    <MenuBar.ApplicationItems>
+      <ButtonMenuItem Text="Preferences..." />
+    </MenuBar.ApplicationItems>
+    <MenuBar.QuitItem>
+      <ButtonMenuItem Text="Quit" Shortcut="CommonModifier+Q" Click="HandleQuit" />
+    </MenuBar.QuitItem>
+    <MenuBar.AboutItem>
+      <ButtonMenuItem Text="About..." Click="HandleAbout" />
+    </MenuBar.AboutItem>
+  </MenuBar>
+</Form.Menu>
+```
+
+```json {title="MainForm.jeto"}
+"Menu": {
+  "Items": [
+    {
+      "$type": "SubMenuItem",
+      "Text": "&File",
+      "Items": [
+        { "$type": "ButtonMenuItem", "Text": "Click Me!", "Click": "HandleClickMe" }
+      ]
+    }
+  ],
+  "ApplicationItems": [
+    { "$type": "ButtonMenuItem", "Text": "Preferences..." }
+  ],
+  "QuitItem": { "$type": "ButtonMenuItem", "Text": "Quit", "Shortcut": "CommonModifier+Q", "Click": "HandleQuit" },
+  "AboutItem": { "$type": "ButtonMenuItem", "Text": "About...", "Click": "HandleAbout" }
+}
+```
+
+{{< /code-tabs >}}
+
 - `Items` are the top-level menus. `&` marks the letter used for keyboard access on Windows and Linux.
 - `ApplicationItems` go in the application menu on macOS, and in the File menu on other platforms.
 - `QuitItem` and `AboutItem` are put in the right place for each platform. If you don't set `QuitItem`, macOS still gets one so users can quit your app.
 
 ## Add a View menu
 
-Add a check command to keep the window on top, and radio commands to pick a size. Put these before the `Menu` is created:
+Add a check command to keep the window on top, and radio commands to pick a size. Commands are always created in code, so with XAML or JSON put these in the code behind, after the form is loaded. Otherwise, put them before the `Menu` is created:
 
 ```csharp
 var alwaysOnTop = new CheckCommand { MenuText = "Always on &Top", ToolBarText = "On Top" };
@@ -66,15 +108,38 @@ large.CheckedChanged += (sender, e) => { if (large.Checked) ClientSize = new Siz
 
 `Controller` groups radio commands together, so checking one unchecks the others.
 
-Then add a View menu to the menu bar's `Items`:
+Then add a View menu to the menu bar:
 
-```csharp
+{{< code-tabs >}}
+
+```csharp {title="MainForm.cs"}
+// in the menu bar's Items
 new SubMenuItem
 {
     Text = "&View",
     Items = { alwaysOnTop, new SeparatorMenuItem(), small, large }
 },
 ```
+
+```csharp {tab="xaml" title="MainForm.xeto.cs"}
+// after XamlReader.Load(this)
+Menu.Items.Add(new SubMenuItem
+{
+    Text = "&View",
+    Items = { alwaysOnTop, new SeparatorMenuItem(), small, large }
+});
+```
+
+```csharp {tab="json" title="MainForm.jeto.cs"}
+// after JsonReader.Load(this)
+Menu.Items.Add(new SubMenuItem
+{
+    Text = "&View",
+    Items = { alwaysOnTop, new SeparatorMenuItem(), small, large }
+});
+```
+
+{{< /code-tabs >}}
 
 ## Shortcuts
 
@@ -88,12 +153,28 @@ clickMe.Shortcut = Application.Instance.CommonModifier | Keys.K;
 
 The toolbar takes the same commands:
 
-```csharp
+{{< code-tabs >}}
+
+```csharp {title="MainForm.cs"}
 ToolBar = new ToolBar
 {
     Items = { clickMe, new SeparatorToolItem(), alwaysOnTop }
 };
 ```
+
+```csharp {tab="xaml" title="MainForm.xeto.cs"}
+// after XamlReader.Load(this)
+ToolBar.Items.Add(new SeparatorToolItem());
+ToolBar.Items.Add(alwaysOnTop);
+```
+
+```csharp {tab="json" title="MainForm.jeto.cs"}
+// after JsonReader.Load(this)
+ToolBar.Items.Add(new SeparatorToolItem());
+ToolBar.Items.Add(alwaysOnTop);
+```
+
+{{< /code-tabs >}}
 
 Set `Image` on a command to show an icon in the toolbar, e.g. `Image = Bitmap.FromResource("MyApp.Images.ClickMe.png")` for an embedded resource.
 

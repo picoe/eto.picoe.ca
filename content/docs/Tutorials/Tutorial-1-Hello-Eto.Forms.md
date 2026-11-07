@@ -6,13 +6,18 @@ This tutorial walks through the app the template creates, then adds a text box a
 
 ## Create the app
 
-Follow the [Quick Start](../QuickStart) to create a new app, choosing the **Code** form type in Visual Studio, or:
+Follow the [Quick Start](../QuickStart) to create a new app. You can write your UI in code or in a markup file, so pick the form type you prefer:
 
-```bash
-dotnet new etoapp -o MyApp
-```
+| Form type | `dotnet new` | UI written in |
+| --- | --- | --- |
+| **Code** | `dotnet new etoapp -o MyApp` | C#, in `MainForm.cs` |
+| **Code Preview** | `dotnet new etoapp -m preview -o MyApp` | C#, in `MainForm.eto.cs`, which the [live preview](../DevExtensions/Live-Preview.md) can draw as you type |
+| **Xaml** | `dotnet new etoapp -m xaml -o MyApp` | XAML, in `MainForm.xeto`, with code behind in `MainForm.xeto.cs` |
+| **Json** | `dotnet new etoapp -m json -o MyApp` | JSON, in `MainForm.jeto`, with code behind in `MainForm.jeto.cs` |
 
-Run it with `dotnet run` (or F5 in your IDE) and you'll see a window with a menu, a toolbar and "Hello World!".
+The samples in these tutorials have a tab for each. Pick one and every sample on the site will show it. For **Code Preview**, use the C# tab and put the UI in `MainForm.eto.cs`.
+
+Run the app with `dotnet run` (or F5 in your IDE) and you'll see a window with a menu, a toolbar and some text.
 
 ## What the template gives you
 
@@ -27,9 +32,11 @@ static void Main(string[] args)
 }
 ```
 
-**MainForm.cs** is your main window. Its `Content` is the control shown inside the window, here a `StackLayout` that lists controls from top to bottom:
+**MainForm** is your main window. Its content is the control shown inside the window, here a `StackLayout` that lists controls from top to bottom:
 
-```csharp
+{{< code-tabs >}}
+
+```csharp {title="MainForm.cs"}
 Content = new StackLayout
 {
     Padding = 10,
@@ -41,41 +48,127 @@ Content = new StackLayout
 };
 ```
 
-A string in a layout is shorthand for a `Label`. The rest of the constructor builds the menu and toolbar, which [Tutorial 2](./Tutorial-2-Menus-and-Toolbars) covers.
+```xaml {title="MainForm.xeto"}
+<StackLayout>
+  <Label>Some Content</Label>
+</StackLayout>
+```
+
+```json {title="MainForm.jeto"}
+"Content": {
+  "$type": "StackLayout",
+  "Items": [
+    "Some Content"
+  ]
+}
+```
+
+{{< /code-tabs >}}
+
+In C# and JSON, a string in a layout is shorthand for a `Label`. The rest of the form sets up the menu and toolbar, which [Tutorial 2](./Tutorial-2-Menus-and-Toolbars) covers.
 
 ## Add some controls
 
-Replace the `Content` with a text box and a button that greets whoever's name is typed in:
+Replace the content with a text box and a button that greets whoever's name is typed in:
 
-```csharp
-var nameBox = new TextBox { PlaceholderText = "Your name" };
+{{< code-tabs >}}
 
-var helloButton = new Button { Text = "Say Hello" };
-helloButton.Click += (sender, e) => MessageBox.Show(this, $"Hello, {nameBox.Text}!");
-
-Content = new StackLayout
+```csharp {title="MainForm.cs"}
+public partial class MainForm : Form
 {
-    Padding = 10,
-    Spacing = 5,
-    Items =
+    TextBox nameBox;
+
+    public MainForm()
     {
-        "What's your name?",
-        nameBox,
-        helloButton
+        // ... title, menu and toolbar from the template
+
+        nameBox = new TextBox { PlaceholderText = "Your name" };
+
+        var helloButton = new Button { Text = "Say Hello" };
+        helloButton.Click += HandleSayHello;
+
+        Content = new StackLayout
+        {
+            Padding = 10,
+            Spacing = 5,
+            Items =
+            {
+                "What's your name?",
+                nameBox,
+                helloButton
+            }
+        };
     }
-};
+
+    void HandleSayHello(object sender, EventArgs e)
+    {
+        MessageBox.Show(this, $"Hello, {nameBox.Text}!");
+    }
+}
 ```
 
+```xaml {title="MainForm.xeto"}
+<StackLayout Spacing="5">
+  <Label>What's your name?</Label>
+  <TextBox x:Name="nameBox" PlaceholderText="Your name" />
+  <Button Text="Say Hello" Click="HandleSayHello" />
+</StackLayout>
+```
+
+```csharp {tab="xaml" title="MainForm.xeto.cs"}
+public class MainForm : Form
+{
+    TextBox nameBox; // set from x:Name in MainForm.xeto
+
+    public MainForm()
+    {
+        XamlReader.Load(this);
+    }
+
+    protected void HandleSayHello(object sender, EventArgs e)
+    {
+        MessageBox.Show(this, $"Hello, {nameBox.Text}!");
+    }
+
+    // ... menu handlers from the template
+}
+```
+
+```json {title="MainForm.jeto"}
+"Content": {
+  "$type": "StackLayout",
+  "Spacing": "5",
+  "Items": [
+    "What's your name?",
+    { "$type": "TextBox", "$name": "nameBox", "PlaceholderText": "Your name" },
+    { "$type": "Button", "Text": "Say Hello", "Click": "HandleSayHello" }
+  ]
+}
+```
+
+```csharp {tab="json" title="MainForm.jeto.cs"}
+public class MainForm : Form
+{
+    TextBox nameBox; // set from $name in MainForm.jeto
+
+    public MainForm()
+    {
+        JsonReader.Load(this);
+    }
+
+    protected void HandleSayHello(object sender, EventArgs e)
+    {
+        MessageBox.Show(this, $"Hello, {nameBox.Text}!");
+    }
+
+    // ... menu handlers from the template
+}
+```
+
+{{< /code-tabs >}}
+
+In XAML and JSON, naming a control (`x:Name` or `$name`) fills the field of the same name in the code behind, and events like `Click` name the method that handles them.
+
 Run the app again and try it out. Each control uses the native one for the platform, so it looks at home on Windows, macOS and Linux.
-
-## Other ways to write the UI
-
-The same form can be written in other ways. Pick one when you create the app:
-
-- **Code Preview** (`-m preview`): the layout goes in `MainForm.eto.cs`, which the [live preview](../DevExtensions/Live-Preview.md) can draw as you type.
-- **Xaml** (`-m xaml`): the layout goes in `MainForm.xeto`, with event handlers in `MainForm.xeto.cs`.
-- **Json** (`-m json`): the layout goes in `MainForm.jeto`, with event handlers in `MainForm.jeto.cs`.
-
-These tutorials use code, but every control and property works the same way in each.
 
 Next: [Tutorial 2 Menus and Toolbars](./Tutorial-2-Menus-and-Toolbars)

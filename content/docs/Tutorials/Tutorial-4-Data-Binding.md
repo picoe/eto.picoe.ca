@@ -16,20 +16,30 @@ using Eto.Forms;
 public class SignUpModel : INotifyPropertyChanged
 {
     string name;
+
+    public SignUpModel()
+    {
+        SignUpCommand = new RelayCommand(SignUp, () => !string.IsNullOrWhiteSpace(Name));
+    }
+
     public string Name
     {
         get => name;
-        set { name = value; OnPropertyChanged(); OnPropertyChanged(nameof(CanSignUp)); }
+        set
+        {
+            name = value;
+            OnPropertyChanged();
+            SignUpCommand.UpdateCanExecute(); // enables the button once there's a name
+        }
     }
 
     public string Email { get; set; }
 
     public bool Newsletter { get; set; } = true;
 
-    public bool CanSignUp => !string.IsNullOrWhiteSpace(Name);
+    public RelayCommand SignUpCommand { get; }
 
-    public RelayCommand SignUpCommand => new RelayCommand(() =>
-        MessageBox.Show($"Welcome, {Name}!"));
+    void SignUp() => MessageBox.Show($"Welcome, {Name}!");
 
     public event PropertyChangedEventHandler PropertyChanged;
     void OnPropertyChanged([CallerMemberName] string propertyName = null)
@@ -37,24 +47,87 @@ public class SignUpModel : INotifyPropertyChanged
 }
 ```
 
-`INotifyPropertyChanged` lets the UI update when the model changes. Here, typing a name updates `CanSignUp`, which enables the button.
+`INotifyPropertyChanged` lets the UI update when the model changes. `SignUpCommand` runs when the button is clicked, and the button is only enabled while the command can run, which here is once a name has been typed.
 
 ## Binding the controls
 
-After creating the layout, bind each control to the model and set it as the form's `DataContext`:
+Bind each control to the model, and set the model as the form's `DataContext`:
 
-```csharp
+{{< code-tabs >}}
+
+```csharp {title="MainForm.cs"}
+// after creating the layout
 nameBox.TextBinding.BindDataContext((SignUpModel m) => m.Name);
 emailBox.TextBinding.BindDataContext((SignUpModel m) => m.Email);
 newsletterBox.CheckedBinding.BindDataContext((SignUpModel m) => m.Newsletter);
-signUpButton.BindDataContext(c => c.Enabled, (SignUpModel m) => m.CanSignUp);
 signUpButton.BindDataContext(c => c.Command, (SignUpModel m) => m.SignUpCommand);
 
 DataContext = new SignUpModel();
 ```
 
+```xaml {title="MainForm.xeto"}
+<TableLayout Spacing="5,5">
+  <TableRow>
+    <Label>Name</Label>
+    <TableCell ScaleWidth="True">
+      <TextBox Text="{Binding Name}" />
+    </TableCell>
+  </TableRow>
+  <TableRow>
+    <Label>Email</Label>
+    <TextBox Text="{Binding Email}" />
+  </TableRow>
+  <TableRow>
+    <TableCell />
+    <CheckBox Text="Send me the newsletter" Checked="{Binding Newsletter}" />
+  </TableRow>
+  <TableRow ScaleHeight="True" />
+  <TableRow>
+    <TableCell />
+    <TableLayout>
+      <TableRow>
+        <Button Text="Sign Up" Command="{Binding SignUpCommand}" />
+        <TableCell />
+      </TableRow>
+    </TableLayout>
+  </TableRow>
+</TableLayout>
+```
+
+```csharp {tab="xaml" title="MainForm.xeto.cs"}
+public MainForm()
+{
+    XamlReader.Load(this);
+    DataContext = new SignUpModel();
+}
+```
+
+```json {title="MainForm.jeto"}
+"Content": {
+  "$type": "TableLayout",
+  "Spacing": "5,5",
+  "Rows": [
+    [ "Name", { "ScaleWidth": true, "Control": { "$type": "TextBox", "Text": "{Binding Name}" } } ],
+    [ "Email", { "$type": "TextBox", "Text": "{Binding Email}" } ],
+    [ null, { "$type": "CheckBox", "Text": "Send me the newsletter", "Checked": "{Binding Newsletter}" } ],
+    null,
+    [ null, [ [ { "$type": "Button", "Text": "Sign Up", "Command": "{Binding SignUpCommand}" }, null ] ] ]
+  ]
+}
+```
+
+```csharp {tab="json" title="MainForm.jeto.cs"}
+public MainForm()
+{
+    JsonReader.Load(this);
+    DataContext = new SignUpModel();
+}
+```
+
+{{< /code-tabs >}}
+
 Every control inside the form shares its `DataContext`, so the bindings all use the same model. Typing in the text boxes updates the model, and changes to the model update the controls.
 
-If you write your UI in a `.xeto` file instead, the same bindings look like `<TextBox Text="{Binding Name}" />`, and the [live preview](../DevExtensions/Live-Preview.md#sample-data-in-the-preview) can fill them with sample data.
+With XAML or JSON, the [live preview](../DevExtensions/Live-Preview.md#sample-data-in-the-preview) can fill these bindings with sample data, and IntelliSense completes the model's properties inside `{Binding}`.
 
 See [Data Binding](../Guides/Data-Binding) for converting values, binding directions and more.
