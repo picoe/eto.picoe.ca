@@ -1,5 +1,6 @@
 {{- /* Shows the fenced blocks inside as tabs, one per language:
        {{< code-tabs >}} ```cs ... ``` ```vb ... ``` {{< /code-tabs >}}
+       Blocks for the same language share a tab, and ```cs {tab="xaml"} adds one to another tab.
        Picking a language switches every tab group on the site to it. */ -}}
 <div class="code-tabs">
 {{ .Inner | .Page.RenderString (dict "display" "block") }}

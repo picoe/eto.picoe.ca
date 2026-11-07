@@ -273,8 +273,9 @@ a.sidebar-heading:hover,
   overflow-x: auto;
 }
 
-/* Tabs show the language, so blocks inside them (and unlabelled ones) float just the copy button. */
-.code-tabs.has-tabs .code-block-bar,
+/* Tabs show the language, so blocks inside them (and unlabelled ones) float just the copy button.
+   Blocks with a title, such as a file name, keep their bar. */
+.code-tabs.has-tabs .code-block:not(.has-title) .code-block-bar,
 .code-block.no-label .code-block-bar {
   position: absolute;
   top: 0.3rem;
@@ -290,11 +291,11 @@ a.sidebar-heading:hover,
   position: relative;
 }
 
-.code-tabs.has-tabs .code-block-label {
+.code-tabs.has-tabs .code-block:not(.has-title) .code-block-label {
   display: none;
 }
 
-.code-tabs.has-tabs .code-block pre,
+.code-tabs.has-tabs .code-block:not(.has-title) pre,
 .code-block.no-label pre {
   padding-right: 5rem;
 }

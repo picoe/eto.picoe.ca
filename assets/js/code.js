@@ -15,7 +15,7 @@
         var on = tab.getAttribute('data-lang') === lang;
         tab.setAttribute('aria-selected', on ? 'true' : 'false');
         tab.tabIndex = on ? 0 : -1;
-        group.blocks[i].hidden = !on;
+        group.blocks[i].forEach(function (block) { block.hidden = !on; });
       });
     });
     if (remember) {
@@ -24,15 +24,26 @@
   }
 
   function buildTabs(group) {
-    var blocks = Array.prototype.filter.call(group.children, function (c) {
-      return c.classList.contains('code-block');
+    // One tab per language, holding every block for it, e.g. a .xeto and its code behind.
+    var blocks = [];
+    var langs = [];
+    Array.prototype.forEach.call(group.children, function (c) {
+      if (!c.classList.contains('code-block')) return;
+      var i = langs.indexOf(c.getAttribute('data-lang'));
+      if (i < 0) {
+        langs.push(c.getAttribute('data-lang'));
+        blocks.push([c]);
+      } else {
+        blocks[i].push(c);
+      }
     });
     if (blocks.length < 2) return;
     group.blocks = blocks;
     var bar = document.createElement('div');
     bar.className = 'code-tabs-bar';
     bar.setAttribute('role', 'tablist');
-    blocks.forEach(function (block, i) {
+    blocks.forEach(function (tabBlocks, i) {
+      var block = tabBlocks[0];
       var tab = document.createElement('button');
       tab.type = 'button';
       tab.className = 'code-tab';
@@ -42,7 +53,7 @@
       tab.setAttribute('aria-selected', i === 0 ? 'true' : 'false');
       tab.tabIndex = i === 0 ? 0 : -1;
       bar.appendChild(tab);
-      block.hidden = i !== 0;
+      tabBlocks.forEach(function (b) { b.hidden = i !== 0; });
     });
     // Tabs carry the language name, so the per-block label would repeat it.
     group.classList.add('has-tabs');
