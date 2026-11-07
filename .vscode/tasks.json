@@ -11,25 +11,6 @@
                     "OWL_DIR": "${userHome}/Projects/McNeel/Owl"
                 }
             },
-            "problemMatcher": []
-        },
-        {
-            "label": "Serve site",
-            "type": "shell",
-            // Runs the server outside VS Code so the task finishes; a still-running task is never restarted.
-            "command": "pkill -f 'http.server 8080 --bind 127.0.0.1 --directory public'; nohup python3 -m http.server 8080 --bind 127.0.0.1 --directory public >/dev/null 2>&1 & sleep 1 && open http://localhost:8080/",
-            "problemMatcher": []
-        },
-        {
-            "label": "Stop site server",
-            "type": "shell",
-            "command": "pkill -f 'http.server 8080 --bind 127.0.0.1 --directory public' || true",
-            "problemMatcher": []
-        },
-        {
-            "label": "Build and serve site",
-            "dependsOn": ["Build site", "Serve site"],
-            "dependsOrder": "sequence",
             "group": {
                 "kind": "build",
                 "isDefault": true
