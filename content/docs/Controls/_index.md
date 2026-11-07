@@ -9,45 +9,45 @@ Custom controls can either be composed entirely of Eto.Forms controls, which wou
 
 The standard controls are:
 
-* [Button](/api/Eto/Forms/Button) - Standard button with text
-* [Calendar](/api/Eto/Forms/Calendar) - Calendar control to pick a date or range of dates
-* [CheckBox](/api/Eto/Forms/CheckBox) - Check box with a label
-* [ColorPicker](/api/Eto/Forms/ColorPicker) - Pick a single color value
-* [ComboBox](/api/Eto/Forms/ComboBox) - Text entry with a drop down list of items
-* [DateTimePicker](/api/Eto/Forms/DateTimePicker) - Control to enter a date and/or time
-* [Drawable](/api/Eto/Forms/Drawable) - Owner-drawn control using [Graphics](/api/Eto/Drawing/Graphics) object
-* [DropDown](/api/Eto/Forms/DropDown) - Drop down with a list of items
-* [EnumDropDown](/api/Eto/Forms/EnumDropDown-1) - A simple way to create a drop down with values from an Enumeration
-* [EnumRadioButtonList](/api/Eto/Forms/EnumRadioButtonList-1) - Manages a list of radio buttons from an Enumeration
+* [Button](/api/type/eto.forms.button/) - Standard button with text
+* [Calendar](/api/type/eto.forms.calendar/) - Calendar control to pick a date or range of dates
+* [CheckBox](/api/type/eto.forms.checkbox/) - Check box with a label
+* [ColorPicker](/api/type/eto.forms.colorpicker/) - Pick a single color value
+* [ComboBox](/api/type/eto.forms.combobox/) - Text entry with a drop down list of items
+* [DateTimePicker](/api/type/eto.forms.datetimepicker/) - Control to enter a date and/or time
+* [Drawable](/api/type/eto.forms.drawable/) - Owner-drawn control using [Graphics](/api/type/eto.drawing.graphics/) object
+* [DropDown](/api/type/eto.forms.dropdown/) - Drop down with a list of items
+* [EnumDropDown](/api/type/eto.forms.enumdropdown-1/) - A simple way to create a drop down with values from an Enumeration
+* [EnumRadioButtonList](/api/type/eto.forms.enumradiobuttonlist-1/) - Manages a list of radio buttons from an Enumeration
 * [GridView](./GridView) - A virtualized grid of data with editable cells
-* [GroupBox](/api/Eto/Forms/GroupBox) - A panel with a border and optional title
-* [ImageView](/api/Eto/Forms/ImageView) - A view to display a single image
-* [Label](/api/Eto/Forms/Label) - Displays text
-* [LinkButton](/api/Eto/Forms/LinkButton) - A simple label that acts like a button, similar to a hyperlink
-* [ListBox](/api/Eto/Forms/ListBox) - A scrollable list of items
-* [ListControl](/api/Eto/Forms/ListControl) - Base for ListBox, DropDown, ComboBox, and other list-type controls
-* [MaskedTextBox](/api/Eto/Forms/MaskedTextBox) - TextBox for variable or fixed length masks
-* [Navigation](/api/Eto/Forms/Navigation) - (mobile) - A pane that can present multiple pages
-* [NumericUpDown](/api/Eto/Forms/NumericUpDown) - Numeric control that allows the user to adjust the value with the mouse
-* [Panel](/api/Eto/Forms/Panel) - A blank panel container to add other controls
-* [PasswordBox](/api/Eto/Forms/PasswordBox) - Enter passwords or sensitive data
-* [ProgressBar](/api/Eto/Forms/ProgressBar) - Show progress of long running tasks
-* [RadioButton](/api/Eto/Forms/RadioButton) - Used in a group of radio buttons to allow user to select from values
-* [RadioButtonList](/api/Eto/Forms/RadioButtonList) - Manages a list of radio buttons
-* [RichTextArea](/api/Eto/Forms/RichTextArea) - Multi-line text area with rich text formatting
-* [Scrollable](/api/Eto/Forms/Scrollable) - A scrollable container
-* [SearchBox](/api/Eto/Forms/SearchBox) - A text box with search-box functionality
-* [Slider](/api/Eto/Forms/Slider) - A horizontal or vertical slider to select a value from a range
-* [Spinner](/api/Eto/Forms/Spinner) - A spinner to show indeterminate progress in compact space
-* [Splitter](/api/Eto/Forms/Splitter) - Splits two panes horizontally or vertically
-* [TabControl](/api/Eto/Forms/TabControl) - Presents multiple TabPage containers which the user can select
-* [TabPage](/api/Eto/Forms/TabPage) - A single page of a TabControl
-* [TextArea](/api/Eto/Forms/TextArea) - Multi-line text control with scrollbars
-* [TextBox](/api/Eto/Forms/TextBox) - Single line text input
-* [TextControl](/api/Eto/Forms/TextControl) - Base for any control that contains text
-* [TreeView](/api/Eto/Forms/TreeView) - A control to present nodes in a tree
-* [TreeGridView](/api/Eto/Forms/TreeGridView) - A TreeView with columns
-* [WebView](/api/Eto/Forms/WebView) - Control to present a web page through a url or static HTML
+* [GroupBox](/api/type/eto.forms.groupbox/) - A panel with a border and optional title
+* [ImageView](/api/type/eto.forms.imageview/) - A view to display a single image
+* [Label](/api/type/eto.forms.label/) - Displays text
+* [LinkButton](/api/type/eto.forms.linkbutton/) - A simple label that acts like a button, similar to a hyperlink
+* [ListBox](/api/type/eto.forms.listbox/) - A scrollable list of items
+* [ListControl](/api/type/eto.forms.listcontrol/) - Base for ListBox, DropDown, ComboBox, and other list-type controls
+* [MaskedTextBox](/api/type/eto.forms.maskedtextbox/) - TextBox for variable or fixed length masks
+* [Navigation](/api/type/eto.forms.navigation/) - (mobile) - A pane that can present multiple pages
+* [NumericUpDown](/api/type/eto.forms.numericupdown/) - Numeric control that allows the user to adjust the value with the mouse
+* [Panel](/api/type/eto.forms.panel/) - A blank panel container to add other controls
+* [PasswordBox](/api/type/eto.forms.passwordbox/) - Enter passwords or sensitive data
+* [ProgressBar](/api/type/eto.forms.progressbar/) - Show progress of long running tasks
+* [RadioButton](/api/type/eto.forms.radiobutton/) - Used in a group of radio buttons to allow user to select from values
+* [RadioButtonList](/api/type/eto.forms.radiobuttonlist/) - Manages a list of radio buttons
+* [RichTextArea](/api/type/eto.forms.richtextarea/) - Multi-line text area with rich text formatting
+* [Scrollable](/api/type/eto.forms.scrollable/) - A scrollable container
+* [SearchBox](/api/type/eto.forms.searchbox/) - A text box with search-box functionality
+* [Slider](/api/type/eto.forms.slider/) - A horizontal or vertical slider to select a value from a range
+* [Spinner](/api/type/eto.forms.spinner/) - A spinner to show indeterminate progress in compact space
+* [Splitter](/api/type/eto.forms.splitter/) - Splits two panes horizontally or vertically
+* [TabControl](/api/type/eto.forms.tabcontrol/) - Presents multiple TabPage containers which the user can select
+* [TabPage](/api/type/eto.forms.tabpage/) - A single page of a TabControl
+* [TextArea](/api/type/eto.forms.textarea/) - Multi-line text control with scrollbars
+* [TextBox](/api/type/eto.forms.textbox/) - Single line text input
+* [TextControl](/api/type/eto.forms.textcontrol/) - Base for any control that contains text
+* [TreeView](/api/type/eto.forms.treeview/) - A control to present nodes in a tree
+* [TreeGridView](/api/type/eto.forms.treegridview/) - A TreeView with columns
+* [WebView](/api/type/eto.forms.webview/) - Control to present a web page through a url or static HTML
 
 ## Containers
 
@@ -65,15 +65,15 @@ For example, if you created a ``Dialog`` or ``Form`` and didn't specify any size
 
 ## Windows
 
-* [Form](/api/Eto/Forms/Form) - A modeless window
-* [Dialog](/api/Eto/Forms/Dialog) - A modal dialog with no result value
-* [Dialog&lt;T&gt;](/api/Eto/Forms/Dialog-1) - A modal dialog with a custom result value
+* [Form](/api/type/eto.forms.form/) - A modeless window
+* [Dialog](/api/type/eto.forms.dialog/) - A modal dialog with no result value
+* [Dialog&lt;T&gt;](/api/type/eto.forms.dialog-1/) - A modal dialog with a custom result value
 
 ## Dialogs
 
-* [ColorDialog](/api/Eto/Forms/ColorDialog) - Select a color
-* [FontDialog](/api/Eto/Forms/FontDialog) - Choose a font and style
-* [OpenFileDialog](/api/Eto/Forms/OpenFileDialog) - Open an existing file or files matching a set of patterns
-* [SaveFileDialog](/api/Eto/Forms/SaveFileDialog) - Choose a file and format to save to
-* [SelectFolderDialog](/api/Eto/Forms/SelectFolderDialog) - Select a folder
-* [MessageBox](/api/Eto/Forms/MessageBox) - Show a standard message box with specific buttons
+* [ColorDialog](/api/type/eto.forms.colordialog/) - Select a color
+* [FontDialog](/api/type/eto.forms.fontdialog/) - Choose a font and style
+* [OpenFileDialog](/api/type/eto.forms.openfiledialog/) - Open an existing file or files matching a set of patterns
+* [SaveFileDialog](/api/type/eto.forms.savefiledialog/) - Choose a file and format to save to
+* [SelectFolderDialog](/api/type/eto.forms.selectfolderdialog/) - Select a folder
+* [MessageBox](/api/type/eto.forms.messagebox/) - Show a standard message box with specific buttons

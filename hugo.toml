@@ -14,7 +14,7 @@ disableKinds = ["taxonomy", "term"]
 [params]
 tagline = "Native Cross Platform UI made easy."
 heroCTALabel = "Get Started in 5 Minutes ⏱️"
-heroCTAURL = "/docs/QuickStart/"
+heroCTAURL = "/docs/quickstart/"
 heroDescription = "Eto.Forms lets you build native desktop applications with a single, shared .NET codebase."
 githubURL = "https://github.com/picoe/Eto"
 siteDescription = "Documentation and API reference for Eto.Forms, the native cross platform UI toolkit."
@@ -38,10 +38,10 @@ siteDescription = "Documentation and API reference for Eto.Forms, the native cro
   title = "Docs"
   [[params.footerColumns.links]]
     label = "Quick Start"
-    url = "/docs/QuickStart/"
+    url = "/docs/quickstart/"
   [[params.footerColumns.links]]
     label = "Tutorials"
-    url = "/docs/Tutorials/"
+    url = "/docs/tutorials/"
 
 [[params.footerColumns]]
   title = "Community"
