@@ -4,3 +4,6 @@
 [submodule "eto"]
 	path = eto
 	url = https://github.com/picoe/Eto.git
+[submodule "owl"]
+	path = owl
+	url = https://github.com/mcneel/Owl.git
