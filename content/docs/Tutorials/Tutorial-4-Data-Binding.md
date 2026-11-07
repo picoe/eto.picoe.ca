@@ -2,25 +2,29 @@
 title: "Tutorial 4 - Data Binding"
 ---
 
-This tutorial connects the sign-up form from [Tutorial 3](./Tutorial-3-Table-Layout) to a view model with data binding.
+This tutorial connects the sign-up form from [Tutorial 3](./Tutorial-3-Table-Layout) to the view model from [Tutorial 2](./Tutorial-2-Menus-and-Toolbars) with data binding.
 
-## A view model
+## Extending the view model
 
-Rather than reading values out of each control, put them in a view model and bind the controls to it. Add this class to your project:
+Rather than reading values out of each control, put them in the `MainViewModel` from [Tutorial 2](./Tutorial-2-Menus-and-Toolbars) and bind the controls to it. Add the sign-up properties and a command for the button:
 
-```csharp
+```csharp {title="MainViewModel.cs"}
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Eto.Forms;
 
-public class SignUpModel : INotifyPropertyChanged
+public class MainViewModel : INotifyPropertyChanged
 {
     string name;
 
-    public SignUpModel()
+    public MainViewModel()
     {
+        // ... menu commands from Tutorial 2
+
         SignUpCommand = new RelayCommand(SignUp, () => !string.IsNullOrWhiteSpace(Name));
     }
+
+    // ... command properties from Tutorial 2
 
     public string Name
     {
@@ -47,22 +51,20 @@ public class SignUpModel : INotifyPropertyChanged
 }
 ```
 
-`INotifyPropertyChanged` lets the UI update when the model changes. `SignUpCommand` runs when the button is clicked, and the button is only enabled while the command can run, which here is once a name has been typed.
+`INotifyPropertyChanged` lets the UI update when the view model changes. `SignUpCommand` runs when the button is clicked, and the button is only enabled while the command can run, which here is once a name has been typed.
 
 ## Binding the controls
 
-Bind each control to the model, and set the model as the form's `DataContext`:
+The form's `DataContext` is already the view model from Tutorial 2, so bind each control to its properties:
 
 {{< code-tabs >}}
 
 ```csharp {title="MainForm.cs"}
 // after creating the layout
-nameBox.TextBinding.BindDataContext((SignUpModel m) => m.Name);
-emailBox.TextBinding.BindDataContext((SignUpModel m) => m.Email);
-newsletterBox.CheckedBinding.BindDataContext((SignUpModel m) => m.Newsletter);
-signUpButton.BindDataContext(c => c.Command, (SignUpModel m) => m.SignUpCommand);
-
-DataContext = new SignUpModel();
+nameBox.TextBinding.BindDataContext((MainViewModel m) => m.Name);
+emailBox.TextBinding.BindDataContext((MainViewModel m) => m.Email);
+newsletterBox.CheckedBinding.BindDataContext((MainViewModel m) => m.Newsletter);
+signUpButton.BindDataContext(c => c.Command, (MainViewModel m) => m.SignUpCommand);
 ```
 
 ```xaml {title="MainForm.xeto"}
@@ -94,14 +96,6 @@ DataContext = new SignUpModel();
 </TableLayout>
 ```
 
-```csharp {tab="xaml" title="MainForm.xeto.cs"}
-public MainForm()
-{
-    XamlReader.Load(this);
-    DataContext = new SignUpModel();
-}
-```
-
 ```json {title="MainForm.jeto"}
 "Content": {
   "$type": "TableLayout",
@@ -116,17 +110,9 @@ public MainForm()
 }
 ```
 
-```csharp {tab="json" title="MainForm.jeto.cs"}
-public MainForm()
-{
-    JsonReader.Load(this);
-    DataContext = new SignUpModel();
-}
-```
-
 {{< /code-tabs >}}
 
-Every control inside the form shares its `DataContext`, so the bindings all use the same model. Typing in the text boxes updates the model, and changes to the model update the controls.
+Every control inside the form shares its `DataContext`, so the menu, toolbar and form all use the same view model. Typing in the text boxes updates the view model, and changes to the view model update the controls.
 
 With XAML or JSON, the [live preview](../DevExtensions/Live-Preview.md#sample-data-in-the-preview) can fill these bindings with sample data, and IntelliSense completes the model's properties inside `{Binding}`.
 
