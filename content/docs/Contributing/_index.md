@@ -13,24 +13,24 @@ These are the system requirements for developing and/or contributing to Eto.Form
 
 ### Windows
 
-On Windows, you can target WPF, WinRT, Windows Forms, and GTK+3.
+On Windows, you can target WPF, WinForms and GTK.
 
-* [Visual Studio 2022](https://visualstudio.com) or [Visual Studio Code](https://code.visualstudio.com)
-* [.NET Core SDK](https://dotnet.microsoft.com/download)
-* (optional) For macOS: [.NET macos workload](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-workload-install)
-* (optional) For GTK+3: [GTK+3](http://www.mono-project.com/download/#download-win)
+* [Visual Studio 2022 or 2026](https://visualstudio.com), [Visual Studio Code](https://code.visualstudio.com) or [Rider](https://www.jetbrains.com/rider/)
+* [.NET SDK](https://dotnet.microsoft.com/download)
+* (optional) For GTK: [GTK 3](https://www.gtk.org/docs/installations/windows/)
 
 Notes:
 
-* Can build but not run macOS or Mac64 applications
+* Can build but not run Mac64 applications, and can't build macOS applications
 
 ### macOS
 
-On Mac OS X, you can target Mac64, macOS, and Gtk+3.
+On macOS, you can target Mac64, macOS and GTK.
 
-* [Visual Studio Code](https://code.visualstudio.com)
-* [.NET Core SDK](https://dotnet.microsoft.com/download)
-* [GTK+3](https://formulae.brew.sh/formula/gtk+3)
+* [Visual Studio Code](https://code.visualstudio.com) or [Rider](https://www.jetbrains.com/rider/)
+* [.NET SDK](https://dotnet.microsoft.com/download)
+* (optional) For macOS: [.NET macos workload](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-workload-install)
+* (optional) For GTK: [GTK 3](https://formulae.brew.sh/formula/gtk+3)
 
 Notes:
 
@@ -38,25 +38,22 @@ Notes:
 
 ### Linux
 
-On Linux, you can target Gtk+3 for either .NET Core or mono.
+On Linux, you can target GTK.
 
-* [Visual Studio Code](https://code.visualstudio.com)
-* [.NET Core SDK](https://dotnet.microsoft.com/download)
-* [Mono 6.x](http://www.mono-project.com/download/)
-* For Gtk+3 (Eto.Gtk): Gtk+ 3.20 or greater
+* [Visual Studio Code](https://code.visualstudio.com) or [Rider](https://www.jetbrains.com/rider/)
+* [.NET SDK](https://dotnet.microsoft.com/download)
+* GTK 3.20 or later
 
 Notes:
 
-* Can build but not run WPF, WinForms, macOS, or Mac64 applications
+* Can build but not run WPF, WinForms or Mac64 applications, and can't build macOS applications
 
 ## Building
 
-To build you can use the VS Code Tasks, or load up the **Eto.sln** file.
+To build, open **src/Eto.slnx** in your IDE, or use the VS Code tasks.
 
-To build Eto.Forms and associated NuGet packages outside of your IDE, you can run the **Resources/build.sh** (mac/linux) or **Resources\build.cmd** (windows) scripts.
-You can also pass a parameter to these scripts to set the new version.  E.g.
-
-``./build.sh 2.1.0`` or ``build.cmd 2.1.0``
+To build Eto.Forms and associated NuGet packages outside of your IDE, you can run **build.sh** (macOS/Linux) or **build.cmd** (Windows) from the root of the repository.
+You can also pass a version to these scripts, e.g. `./build.sh 2.14.0` or `build.cmd 2.14.0`. See [Versioning](./Versioning) for how versions and releases work.
 
 ## Pull Requests
 
@@ -67,10 +64,3 @@ Ensure your pull request builds and passes all checks. A check or X will show ne
 1. **You agree to the licensing terms**
 
 Eto.Forms is [BSD-3 Licensed](http://opensource.org/licenses/BSD-3-Clause). By sending a pull request, you agree to license your contributions by the same license.
-# Contributing
----
-title: "Contributing"
-weight: 6
----
-
-# Contributing

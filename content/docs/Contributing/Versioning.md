@@ -2,31 +2,32 @@
 title: "Versioning"
 ---
 
-Eto.Forms uses the following versioning scheme:
+Eto.Forms uses [semantic versioning](https://semver.org): new features bump the minor version (2.13 → 2.14), and fixes bump the patch (2.13.0 → 2.13.1).
 
-1. The master branch is the stable/release branch.
-2. The develop branch is used for ongoing development, merging, etc.
-3. The develop branch uses an auto generated build/revision based off the build date/time.
+## Branches
 
-### v2.0 stable, 2.1 in development
+All work happens on the `develop` branch, and releases are built from it. There are no separate release branches.
 
-Branch       | Version      | File Version | Informational/Nuget
------------- | ------------ | ------------ | -------------------
-master-2.0   |  2.0.0.0     | 2.0.0.0      | 2.0.0
-develop-2.1  |  2.0.*       | 2.0.*        | 2.1.0-build[build]
+## Package versions
 
-### v2.1 stable, 2.2 in development
+| Build | Package version | Example |
+| --- | --- | --- |
+| Release | The milestone's version | `2.13.0` |
+| CI build of `develop` | Next version, date and build number | `2.14.0-ci-20261106.123` |
+| Local build | Next version | `2.14.0-dev` |
 
-Branch       | Version      | File Version | Informational/Nuget
------------- | ------------ | ------------ | -------------------
-master-2.1   |  2.1.0.0     | 2.1.0.0      | 2.1.0
-develop-2.2  |  2.1.*       | 2.1.*        | 2.2.0-build[build]
+The next version is set by `DevVersion` in [build/Common.props](https://github.com/picoe/Eto/blob/develop/build/Common.props).
 
-## Patches
+## Assembly versions
 
-Patches will be based off the master branch and increment the nuget patch number and file version, but retain the same assembly version.  This allows for strong naming compatible assemblies. For example, a new patch to 2.0 would result in:
+The assembly version only includes the major and minor version, e.g. `2.13.0.0` for every 2.13.x release. Patch releases can then replace an earlier one without rebuilding the apps or plugins that use it. The file version adds the build date, so each build can still be told apart.
 
-Branch       | Version      | File Version | Informational/Nuget
------------- | ------------ | ------------ | -------------------
-master-2.0.1 |  2.0.0.0     | 2.0.1.0      | 2.0.1
-develop-2.1  |  2.0.*       | 2.0.*        | 2.1.0-alpha[build]
+## Releasing
+
+Releases are made from GitHub milestones:
+
+1. Close a milestone named for the version, e.g. `2.14.0`. This builds the packages, pushes them to MyGet and creates a GitHub pre-release.
+2. Test the pre-release, then mark it as a full release on GitHub. This pushes the packages to nuget.org.
+3. After a minor release, a pull request is opened to move `develop` to the next version, e.g. `2.15.0-dev`.
+
+If a release build fails, fix `develop`, then reopen and close the milestone to try again.
