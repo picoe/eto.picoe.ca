@@ -25,7 +25,7 @@
     <div class="showcase-code content-body">{{ .Content }}</div>
     <figure class="showcase-shots">
       {{ range site.Params.screenshots }}
-        <img src="{{ .image | relURL }}" alt="The sample app running on {{ .platform }}" />
+        <img src="{{ .image | relURL }}"{{ with .width }} width="{{ . }}"{{ end }} alt="The sample app running on {{ .platform }}" />
         <figcaption>{{ .platform }}</figcaption>
       {{ end }}
     </figure>

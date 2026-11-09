@@ -24,9 +24,16 @@ cd MyApp
 dotnet run"""
 
   # Shown beside the code sample on the home page, all running that sample.
+  # width is in CSS pixels, chosen so each window shows at about the same size.
+  [[params.screenshots]]
+  platform = "Windows"
+  image = "/img/screenshot-windows.png"
+  width = 365
+
   [[params.screenshots]]
   platform = "macOS"
   image = "/img/screenshot-macos.png"
+  width = 405
 
   [[params.featureCards]]
   title = "Write UI Your Way"
