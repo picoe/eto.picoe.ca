@@ -7,7 +7,7 @@ cd "$(dirname "$0")"
 
 # Only when missing, so a checkout with local Eto changes is documented as it is.
 [[ -e eto/.git ]] || git submodule update --init eto
-# The submodule until Owl's header pickers are in a NuGet release.
+# The submodule until Owl's header pickers and --sidebar-toggle are in a NuGet release.
 [[ -n "${OWL_DIR:-}" || -e owl/.git ]] || git submodule update --init owl
 
 # Moved aside before deleting: Finder can rewrite .DS_Store mid-delete, which makes rm fail.
@@ -32,6 +32,7 @@ eto_ref=$(git -C eto describe --tags --exact-match 2>/dev/null || git -C eto rev
   --api-versions 2.14,2.13,2.12,2.11,2.10,2.9 \
   --site-header public/owl/header.html \
   --site-footer public/owl/footer.html \
+  --sidebar-toggle sidebar \
   --out public/api \
   --quiet
 
