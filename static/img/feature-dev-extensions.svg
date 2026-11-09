@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 320 240">
+  <defs>
+    <filter id="s4" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="5" result="b"/>
+      <feOffset dy="3" result="o"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.5"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <linearGradient id="card4" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2e3440"/><stop offset="1" stop-color="#232831"/>
+    </linearGradient>
+  </defs>
+
+  <!-- IDE window: editor on the left, live preview on the right -->
+  <g transform="translate(16,38)">
+    <rect width="288" height="164" rx="9" fill="url(#card4)" filter="url(#s4)"/>
+    <circle cx="13" cy="12" r="3.5" fill="#ff6b6b"/>
+    <circle cx="24" cy="12" r="3.5" fill="#ffd166"/>
+    <circle cx="35" cy="12" r="3.5" fill="#4cd964"/>
+    <rect x="50" y="7" width="66" height="11" rx="3" fill="#3b4252"/>
+    <text x="56" y="15.5" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="7" font-weight="700" fill="#ffd166">MainForm.xeto</text>
+
+    <!-- Markup lines -->
+    <g font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="8" font-weight="700">
+      <text x="12" y="40" fill="#4aa3ff">&lt;StackLayout&gt;</text>
+      <rect x="22" y="48" width="64" height="5" rx="2.5" fill="#5b6475"/>
+      <rect x="22" y="60" width="80" height="5" rx="2.5" fill="#5b6475"/>
+      <text x="22" y="79" fill="#4aa3ff">&lt;Button <tspan fill="#77cfe6">Te</tspan></text>
+      <rect x="71" y="71" width="1.5" height="10" fill="#f6f7fb"/>
+    </g>
+
+    <!-- IntelliSense popup -->
+    <g transform="translate(54,86)" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="7.5" font-weight="700">
+      <rect width="88" height="50" rx="5" fill="#f6f7fb" filter="url(#s4)"/>
+      <rect x="3" y="3" width="82" height="14" rx="3" fill="#1f9bbd"/>
+      <text x="9" y="13" fill="#fff">Text</text>
+      <text x="9" y="29" fill="#5f6c80">TextColor</text>
+      <text x="9" y="43" fill="#5f6c80">ToolTip</text>
+    </g>
+
+    <!-- Divider and preview pane -->
+    <rect x="150" y="26" width="1.5" height="128" fill="#3b4252"/>
+    <g transform="translate(164,40)">
+      <rect width="112" height="100" rx="7" fill="#f6f7fb"/>
+      <rect x="12" y="16" width="56" height="6" rx="3" fill="#5f6c80"/>
+      <rect x="12" y="32" width="88" height="16" rx="4" fill="#fff" stroke="#c4cbd8" stroke-width="1.5"/>
+      <rect x="12" y="58" width="88" height="16" rx="4" fill="#1f9bbd"/>
+      <rect x="36" y="64" width="40" height="4" rx="2" fill="#fff"/>
+    </g>
+    <!-- Live indicator -->
+    <circle cx="170" cy="152" r="3" fill="#4cd964"/>
+    <text x="178" y="155" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="8" font-weight="600" fill="#8a94a6">Live preview</text>
+  </g>
+</svg>

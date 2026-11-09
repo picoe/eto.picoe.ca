@@ -50,6 +50,11 @@ dotnet run"""
   icon = "/img/feature-native-access.svg"
   body = "Reach the underlying native control from any Eto control, embed Eto in an existing app, or write your own custom controls."
 
+  [[params.featureCards]]
+  title = "Design in Your IDE"
+  icon = "/img/feature-dev-extensions.svg"
+  body = "The [developer extensions](/docs/devextensions/) for Visual Studio, VS Code and Rider add a live preview and IntelliSense for your forms as you type."
+
 [[params.footerColumns]]
   title = "Docs"
   [[params.footerColumns.links]]
