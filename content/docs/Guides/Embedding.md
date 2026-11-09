@@ -27,7 +27,7 @@ using Eto.Forms;
 var etoControl = new Eto.Forms.Panel();
 
 // get native container for the control
-System.Windows.Forms.Control myEtoControlAsWinForms = eto.ToNative(true); // true when adding to a native control directly
+System.Windows.Forms.Control myEtoControlAsWinForms = etoControl.ToNative(true); // true when adding to a native control directly
 
 // add to a native control
 var myWinFormsControl = new System.Windows.Forms.Panel();

@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 320 240">
+  <defs>
+    <filter id="s2" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="5" result="b"/>
+      <feOffset dy="3" result="o"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.5"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <!-- The same form contents in every window -->
+    <g id="form">
+      <rect x="10" y="34" width="50" height="5" rx="2.5" fill="#5f6c80"/>
+      <rect x="10" y="46" width="70" height="14" fill="#fff" stroke="#c4cbd8" stroke-width="1.5"/>
+      <rect x="10" y="68" width="70" height="14"/>
+    </g>
+  </defs>
+
+  <!-- Windows: square corners, controls on the right -->
+  <g transform="translate(16,70)" filter="url(#s2)">
+    <rect width="90" height="96" fill="#f3f3f3"/>
+    <rect width="90" height="22" fill="#ffffff"/>
+    <g stroke="#333" stroke-width="1.4" fill="none">
+      <path d="M54 11h6"/><rect x="66" y="8" width="6" height="6"/><path d="M78 8l6 6M84 8l-6 6"/>
+    </g>
+    <use href="#form" fill="#0067c0"/>
+  </g>
+
+  <!-- macOS: rounded, traffic lights on the left -->
+  <g transform="translate(115,58)" filter="url(#s2)">
+    <rect width="90" height="96" rx="9" fill="#ececec"/>
+    <rect width="90" height="22" rx="9" fill="#dcdcdc"/><rect y="12" width="90" height="10" fill="#dcdcdc"/>
+    <circle cx="11" cy="11" r="3.5" fill="#ff6b6b"/>
+    <circle cx="22" cy="11" r="3.5" fill="#ffd166"/>
+    <circle cx="33" cy="11" r="3.5" fill="#4cd964"/>
+    <g transform="translate(0,0)"><use href="#form" fill="#007aff"/></g>
+  </g>
+
+  <!-- GTK: rounded header bar, round close button on the right -->
+  <g transform="translate(214,70)" filter="url(#s2)">
+    <rect width="90" height="96" rx="7" fill="#fafafa"/>
+    <rect width="90" height="22" rx="7" fill="#ebebeb"/><rect y="12" width="90" height="10" fill="#ebebeb"/>
+    <circle cx="79" cy="11" r="6" fill="#d6d6d6"/>
+    <path d="M76.5 8.5l5 5M81.5 8.5l-5 5" stroke="#333" stroke-width="1.4"/>
+    <use href="#form" fill="#3584e4"/>
+  </g>
+
+  <g font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="12" font-weight="600" fill="#8a94a6" text-anchor="middle">
+    <text x="61" y="188">Windows</text>
+    <text x="160" y="176">macOS</text>
+    <text x="259" y="188">Linux</text>
+  </g>
+</svg>

@@ -99,7 +99,7 @@ public class MyModel : INotifyPropertyChanged
         {
             if (isEnabled != value)
             {
-                isEnabled = true;
+                isEnabled = value;
                 OnPropertyChanged();
             }
         }

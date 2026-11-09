@@ -4,18 +4,39 @@
       <p class="eyebrow">{{ site.Params.tagline }}</p>
       <h1>{{ site.Title }}</h1>
       <p>{{ site.Params.heroDescription }}</p>
-      <a class="cta-btn" href="{{ site.Params.heroCTAURL }}">{{ site.Params.heroCTALabel }}</a>
+      <div class="hero-actions">
+        <a class="cta-btn" href="{{ site.Params.heroCTAURL }}">{{ site.Params.heroCTALabel }}</a>
+        <a class="cta-btn secondary" href="{{ site.Params.githubURL }}">View on GitHub</a>
+      </div>
+      <div class="hero-install content-body">
+        {{ printf "```bash {title=\"Install the templates and create an app\"}\n%s\n```" site.Params.installCommand | .RenderString (dict "display" "block") }}
+      </div>
+      <ul class="hero-badges">
+        <li><a href="https://www.nuget.org/packages/Eto.Forms/"><img src="https://img.shields.io/nuget/v/Eto.Forms?label=NuGet" alt="NuGet version" height="20" /></a></li>
+        <li><a href="{{ site.Params.githubURL }}"><img src="https://img.shields.io/github/stars/picoe/Eto?style=flat&label=Stars" alt="GitHub stars" height="20" /></a></li>
+        <li><a href="{{ site.Params.githubURL }}/blob/develop/LICENSE.txt">BSD-3 License</a></li>
+      </ul>
     </div>
   </section>
 {{ end }}
 
 {{ define "main" }}
+  <section class="showcase">
+    <div class="showcase-code content-body">{{ .Content }}</div>
+    <figure class="showcase-shots">
+      {{ range site.Params.screenshots }}
+        <img src="{{ .image | relURL }}"{{ with .width }} width="{{ . }}"{{ end }} alt="The sample app running on {{ .platform }}" />
+        <figcaption>{{ .platform }}</figcaption>
+      {{ end }}
+    </figure>
+  </section>
+
   <section class="feature-grid">
     {{ range site.Params.featureCards }}
       <article class="feature-card">
         <img src="{{ .icon | relURL }}" alt="" role="presentation" />
         <h3>{{ .title }}</h3>
-        <p>{{ .body }}</p>
+        <p>{{ .body | markdownify }}</p>
       </article>
     {{ end }}
   </section>

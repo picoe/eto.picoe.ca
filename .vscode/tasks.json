@@ -5,12 +5,6 @@
             "label": "Build site",
             "type": "shell",
             "command": "./build.sh",
-            "options": {
-                // Local Owl until a release has --site-header; remove to use .config/dotnet-tools.json.
-                "env": {
-                    "OWL_DIR": "${userHome}/Projects/McNeel/Owl"
-                }
-            },
             "group": {
                 "kind": "build",
                 "isDefault": true

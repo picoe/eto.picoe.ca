@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 320 240">
+  <defs>
+    <filter id="s1" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="5" result="b"/>
+      <feOffset dy="3" result="o"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.5"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <linearGradient id="card1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2e3440"/><stop offset="1" stop-color="#232831"/>
+    </linearGradient>
+  </defs>
+  <g font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="11" font-weight="700">
+    <!-- Three source formats -->
+    <g filter="url(#s1)">
+      <rect x="20" y="34" width="118" height="50" rx="8" fill="url(#card1)"/>
+      <rect x="20" y="96" width="118" height="50" rx="8" fill="url(#card1)"/>
+      <rect x="20" y="158" width="118" height="50" rx="8" fill="url(#card1)"/>
+    </g>
+    <text x="32" y="53" fill="#4aa3ff">C#</text>
+    <rect x="32" y="62" width="60" height="5" rx="2.5" fill="#5b6475"/>
+    <rect x="32" y="71" width="90" height="5" rx="2.5" fill="#5b6475"/>
+    <text x="32" y="115" fill="#ffd166">XAML</text>
+    <rect x="32" y="124" width="80" height="5" rx="2.5" fill="#5b6475"/>
+    <rect x="32" y="133" width="50" height="5" rx="2.5" fill="#5b6475"/>
+    <text x="32" y="177" fill="#4cd964">JSON</text>
+    <rect x="32" y="186" width="70" height="5" rx="2.5" fill="#5b6475"/>
+    <rect x="32" y="195" width="86" height="5" rx="2.5" fill="#5b6475"/>
+  </g>
+  <!-- All lead to the same window -->
+  <g fill="none" stroke="#77cfe6" stroke-width="3" stroke-linecap="round">
+    <path d="M142 59 C 162 59, 162 121, 180 121"/>
+    <path d="M142 121 L180 121"/>
+    <path d="M142 183 C 162 183, 162 121, 180 121"/>
+  </g>
+  <g transform="translate(184,72)">
+    <rect width="118" height="98" rx="8" fill="#f6f7fb" filter="url(#s1)"/>
+    <rect width="118" height="20" rx="8" fill="#e3e7ef"/>
+    <rect y="12" width="118" height="8" fill="#e3e7ef"/>
+    <circle cx="11" cy="10" r="3.5" fill="#ff6b6b"/>
+    <circle cx="22" cy="10" r="3.5" fill="#ffd166"/>
+    <circle cx="33" cy="10" r="3.5" fill="#4cd964"/>
+    <rect x="12" y="32" width="60" height="6" rx="3" fill="#5f6c80"/>
+    <rect x="12" y="46" width="94" height="16" rx="4" fill="#fff" stroke="#c4cbd8" stroke-width="1.5"/>
+    <rect x="12" y="70" width="94" height="16" rx="4" fill="#1f9bbd"/>
+  </g>
+</svg>

@@ -1,4 +1,5 @@
-{{- /* Fenced code with a label bar and copy button. Override the label with ```cs {title="MyForm.cs"}. */ -}}
+{{- /* Fenced code with a label bar and copy button. Override the label with ```cs {title="MyForm.cs"}.
+       In code-tabs, {tab="xaml"} puts a block under another language's tab, e.g. the code behind for a .xeto. */ -}}
 {{- $names := dict
   "cs" "C#" "csharp" "C#" "c#" "C#"
   "vb" "VB.NET" "vbnet" "VB.NET"
@@ -12,10 +13,11 @@
 {{- $keys := dict "cs" "csharp" "c#" "csharp" "vbnet" "vb" "fs" "fsharp" "py" "python" "bash" "shell" "sh" "shell" "zsh" "shell" "ps1" "powershell" -}}
 {{- $lang := lower .Type -}}
 {{- $label := .Attributes.title | default (index $names $lang) | default (upper $lang) -}}
-{{- $key := index $keys $lang | default $lang -}}
+{{- $tab := lower (.Attributes.tab | default $lang) -}}
+{{- $key := index $keys $tab | default $tab -}}
 {{- /* Highlighter has no XAML lexer. */ -}}
 {{- $lexer := cond (eq $lang "xaml") "xml" $lang -}}
-<div class="code-block{{ if not $label }} no-label{{ end }}" data-lang="{{ $key }}" data-label="{{ index $names $lang | default (upper $lang) }}">
+<div class="code-block{{ if not $label }} no-label{{ end }}{{ with .Attributes.title }} has-title{{ end }}" data-lang="{{ $key }}" data-label="{{ index $names $tab | default (upper $tab) }}">
   <div class="code-block-bar">
     <span class="code-block-label">{{ $label }}</span>
     <button type="button" class="code-copy" aria-label="Copy code">Copy</button>

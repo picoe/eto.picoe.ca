@@ -2,131 +2,262 @@
 title: "Tutorial 2 - Menus and Toolbars"
 ---
 
-Most desktop platforms have similar features and functionality with menus and toolbars, with a few exceptions:
+This tutorial builds on [Tutorial 1](./Tutorial-1-Hello-Eto.Forms). It moves the menu and toolbar actions into a view model, then adds to the menu and toolbar.
 
-* Mac OS X applications typically only have a single toolbar
-* Mac OS X applications require certain menu items in your app for standard actions to work, such as Cut/Copy/Paste/Undo/Redo/etc.
+Menus and toolbars work much the same on every desktop platform, with a few macOS differences that Eto.Forms handles for you:
 
-Eto.Forms makes dealing with these exceptions very easy.
+- macOS has an application menu (named after your app) that holds About, Preferences and Quit.
+- macOS needs certain menu items, like Cut, Copy, Paste and Undo, for those standard actions to work. Eto.Forms adds them unless you turn this off.
 
-## Command vs. ToolItem & MenuItem
+## Commands
 
-In Eto.Forms, you can create your toolbars and menus directly using the ``ToolItem`` and ``MenuItem`` subclasses. However, you can also use [Commands](https://github.com/picoe/Eto/blob/develop/src/Eto/Forms/Command.cs) to create them instead. This has a few advantages:
+A `Command` holds what a menu or toolbar item does, along with its text and shortcut. The same command can appear in both the menu and the toolbar, and enabling or disabling it updates both.
 
-* Command code is separated from menu or toolbar button UI
-* You can share the same command between the menu and toolbar
+There are three kinds:
 
-## MenuItem types
+- `Command`: runs an action when clicked.
+- `CheckCommand`: toggles on or off.
+- `RadioCommand`: picks one of a group of options.
 
-* ``ButtonMenuItem`` - Click to trigger an event
-* ``CheckMenuItem`` - Toggle on or off
-* ``RadioMenuItem`` - Select from a group of options, supports multiple groups
-* ``SeparatorMenuItem`` - Logically group your menu items for better readability
+You can also add `ButtonMenuItem`, `CheckMenuItem`, `RadioMenuItem` and `SeparatorMenuItem` directly to menus, and `ButtonToolItem`, `CheckToolItem`, `RadioToolItem` and `SeparatorToolItem` to toolbars.
 
-## ToolItem types
+## A view model for the commands
 
-* ``ButtonToolItem`` - Click to trigger an event
-* ``CheckToolItem`` - Toggle on or off
-* ``RadioToolItem`` - Select from a group of options, supports only a *single group* in the toolbar.
-* ``SeparatorToolItem`` - Logically group your tool items for better readability with space or a divider
+Rather than creating commands in the form, put them in a view model. This keeps what your app does separate from how it looks, and lets XAML and JSON views use the same commands. Add this class to your project:
 
-## Command types
+```csharp {title="MainViewModel.cs"}
+using Eto.Forms;
 
-* ``Command`` - Click to trigger an event
-* ``CheckCommand`` - Toggle on or off
-* ``RadioCommand`` - Select from a group of options
+public class MainViewModel
+{
+    public Command ClickMeCommand { get; } = new Command { MenuText = "Click Me!", ToolBarText = "Click Me!" };
 
-## Adding a MenuBar and ToolBar to your form
+    public Command QuitCommand { get; } = new Command { MenuText = "Quit", Shortcut = Application.Instance.CommonModifier | Keys.Q };
 
-In this tutorial, we will start from [Tutorial 1 Hello Eto.Forms](./Tutorial-1-Hello-Eto.Forms)
+    public Command AboutCommand { get; } = new Command { MenuText = "About..." };
 
-1. Create a new custom command to share between the menu and toolbar
-
-  ```csharp
-  public class MyCommand : Command
-  {
-    public MyCommand()
+    public MainViewModel()
     {
-      MenuText = "C&lick Me, Command";
-      ToolBarText = "Click Me";
-      ToolTip = "This shows a dialog for no reason";
-      //Image = Icon.FromResource ("MyResourceName.ico");
-      //Image = Bitmap.FromResource ("MyResourceName.png");
-      Shortcut = Application.Instance.CommonModifier | Keys.M;  // control+M or cmd+M
+        ClickMeCommand.Executed += (sender, e) => MessageBox.Show("I was clicked!");
+        QuitCommand.Executed += (sender, e) => Application.Instance.Quit();
+        AboutCommand.Executed += (sender, e) => new AboutDialog().ShowDialog(Application.Instance.MainForm);
     }
-  
-    protected override void OnExecuted(EventArgs e)
-    {
-      base.OnExecuted(e);
-  
-      MessageBox.Show(Application.Instance.MainForm, "You clicked me!", "Tutorial 2", MessageBoxButtons.OK);
-    }
-  }
-  ```
+}
+```
 
-2. Add your command to the File Menu in a MenuBar, and assign it to the form's Menu.
+## The menu bar
 
-  ```csharp
-  Menu = new MenuBar
-  {
+Create the view model in your form, set it as the form's `DataContext`, and use its commands in the menu:
+
+{{< code-tabs >}}
+
+```csharp {title="MainForm.cs"}
+var model = new MainViewModel();
+DataContext = model;
+
+Menu = new MenuBar
+{
     Items =
     {
-      new ButtonMenuItem
-      { 
-        Text = "&File",
-        Items =
-        { 
-          // you can add commands or menu items
-          new MyCommand(),
-          // another menu item, not based off a Command
-          new ButtonMenuItem { Text = "Click Me, MenuItem" }
-        }
-      } 
+        new SubMenuItem { Text = "&File", Items = { model.ClickMeCommand } },
+    },
+    ApplicationItems =
+    {
+        new ButtonMenuItem { Text = "&Preferences..." },
+    },
+    QuitItem = model.QuitCommand,
+    AboutItem = model.AboutCommand
+};
+```
+
+```xaml {title="MainForm.xeto"}
+<Form.Menu>
+  <MenuBar>
+    <SubMenuItem Text="&amp;File">
+      <ButtonMenuItem Text="Click Me!" Command="{Binding ClickMeCommand}" />
+    </SubMenuItem>
+    <MenuBar.ApplicationItems>
+      <ButtonMenuItem Text="Preferences..." />
+    </MenuBar.ApplicationItems>
+    <MenuBar.QuitItem>
+      <ButtonMenuItem Text="Quit" Shortcut="CommonModifier+Q" Command="{Binding QuitCommand}" />
+    </MenuBar.QuitItem>
+    <MenuBar.AboutItem>
+      <ButtonMenuItem Text="About..." Command="{Binding AboutCommand}" />
+    </MenuBar.AboutItem>
+  </MenuBar>
+</Form.Menu>
+```
+
+```csharp {tab="xaml" title="MainForm.xeto.cs"}
+public MainForm()
+{
+    XamlReader.Load(this);
+    DataContext = new MainViewModel();
+}
+```
+
+```json {title="MainForm.jeto"}
+"Menu": {
+  "Items": [
+    {
+      "$type": "SubMenuItem",
+      "Text": "&File",
+      "Items": [
+        { "$type": "ButtonMenuItem", "Text": "Click Me!", "Command": "{Binding ClickMeCommand}" }
+      ]
     }
-  }
-  ```
+  ],
+  "ApplicationItems": [
+    { "$type": "ButtonMenuItem", "Text": "Preferences..." }
+  ],
+  "QuitItem": { "$type": "ButtonMenuItem", "Text": "Quit", "Shortcut": "CommonModifier+Q", "Command": "{Binding QuitCommand}" },
+  "AboutItem": { "$type": "ButtonMenuItem", "Text": "About...", "Command": "{Binding AboutCommand}" }
+}
+```
 
-3. Add a Quit menu item. *Note*  this is optional. On OS X, one will be added for you if you don't specify a Quit item (otherwise there is no easy way for the user to quit your application).
+```csharp {tab="json" title="MainForm.jeto.cs"}
+public MainForm()
+{
+    JsonReader.Load(this);
+    DataContext = new MainViewModel();
+}
+```
 
-  ```csharp
-  Menu.QuitItem = new Command((sender, e) => Application.Instance.Quit())
-  { 
-    MenuText = "Quit", 
-    Shortcut = Application.Instance.CommonModifier | Keys.Q
-  };
-  ```
+{{< /code-tabs >}}
 
-4. Add an About menu item to provide information about your app. This shows how to create a menu item directly, without using a command.
+- `Items` are the top-level menus. `&` marks the letter used for keyboard access on Windows and Linux.
+- `ApplicationItems` go in the application menu on macOS, and in the File menu on other platforms.
+- `QuitItem` and `AboutItem` are put in the right place for each platform. If you don't set `QuitItem`, macOS still gets one so users can quit your app.
 
-  ```csharp
-  var aboutItem = new ButtonMenuItem { Text = "About..." };
-  aboutItem.Click += (sender, e) =>
-  {
-    var dlg = new Dialog
-    { 
-      Content = new Label { Text = "About my app..." }, 
-      ClientSize = new Size(200, 200)
-    };
-    dlg.ShowModal(this);
-  };
-  Menu.AboutItem = aboutItem;
-  ```
+In XAML and JSON, `{Binding ClickMeCommand}` finds the command in the form's `DataContext`. A bound command supplies what the item does and whether it's checked or enabled, so set the item's `Text` and `Shortcut` in the markup.
 
-5. Create a ToolBar
+## Add a View menu
 
-  ```csharp
-  ToolBar = new ToolBar
-  {
-    Items =
-    { 
-      new MyCommand(),
-      new SeparatorToolItem(),
-      new ButtonToolItem { Text = "Click Me, ToolItem" }
-    }
-  };
-  ```
+Add a check command to the view model that keeps the window on top:
 
-- [C# Source](https://github.com/picoe/Eto/blob/develop/samples/Tutorials/CSharp/Tutorial2/Main.cs)
-- [F# Source](https://github.com/picoe/Eto/blob/develop/samples/Tutorials/FSharp/Tutorial2/Program.fs)
+```csharp {title="MainViewModel.cs"}
+public CheckCommand AlwaysOnTopCommand { get; } = new CheckCommand { MenuText = "Always on &Top", ToolBarText = "On Top" };
+```
 
-Next: [Tutorial 3 Table Layout](./Tutorial-3-Table-Layout)
+The window is the form's job rather than the view model's, so have the form react when the command is checked:
+
+{{< code-tabs >}}
+
+```csharp {title="MainForm.cs"}
+var model = new MainViewModel();
+DataContext = model;
+
+model.AlwaysOnTopCommand.CheckedChanged += (sender, e) => Topmost = model.AlwaysOnTopCommand.Checked;
+```
+
+```csharp {tab="xaml" title="MainForm.xeto.cs"}
+public MainForm()
+{
+    XamlReader.Load(this);
+
+    var model = new MainViewModel();
+    DataContext = model;
+
+    model.AlwaysOnTopCommand.CheckedChanged += (sender, e) => Topmost = model.AlwaysOnTopCommand.Checked;
+}
+```
+
+```csharp {tab="json" title="MainForm.jeto.cs"}
+public MainForm()
+{
+    JsonReader.Load(this);
+
+    var model = new MainViewModel();
+    DataContext = model;
+
+    model.AlwaysOnTopCommand.CheckedChanged += (sender, e) => Topmost = model.AlwaysOnTopCommand.Checked;
+}
+```
+
+{{< /code-tabs >}}
+
+Then add a View menu to the menu bar:
+
+{{< code-tabs >}}
+
+```csharp {title="MainForm.cs"}
+// in the menu bar's Items
+new SubMenuItem { Text = "&View", Items = { model.AlwaysOnTopCommand } },
+```
+
+```xaml {title="MainForm.xeto"}
+<!-- after the File menu -->
+<SubMenuItem Text="&amp;View">
+  <CheckMenuItem Text="Always on &amp;Top" Command="{Binding AlwaysOnTopCommand}" />
+</SubMenuItem>
+```
+
+```json {title="MainForm.jeto"}
+/* in the menu's Items, after the File menu */
+{
+  "$type": "SubMenuItem",
+  "Text": "&View",
+  "Items": [
+    { "$type": "CheckMenuItem", "Text": "Always on &Top", "Command": "{Binding AlwaysOnTopCommand}" }
+  ]
+}
+```
+
+{{< /code-tabs >}}
+
+Radio items are grouped by creating them from `RadioCommand`s that share a `Controller`, so radio groups currently need to be built in code.
+
+## Shortcuts
+
+Set `Shortcut` on a command to give it a keyboard shortcut. Use `Application.Instance.CommonModifier` for the key users expect on each platform, Ctrl on Windows and Linux and Cmd on macOS:
+
+```csharp {title="MainViewModel.cs"}
+public Command ClickMeCommand { get; } = new Command
+{
+    MenuText = "Click Me!",
+    ToolBarText = "Click Me!",
+    Shortcut = Application.Instance.CommonModifier | Keys.K
+};
+```
+
+In XAML and JSON, set it on the menu item instead, e.g. `Shortcut="CommonModifier+K"`.
+
+## The toolbar
+
+The toolbar uses the same commands, and its On Top button stays in sync with the View menu:
+
+{{< code-tabs >}}
+
+```csharp {title="MainForm.cs"}
+ToolBar = new ToolBar
+{
+    Items = { model.ClickMeCommand, new SeparatorToolItem(), model.AlwaysOnTopCommand }
+};
+```
+
+```xaml {title="MainForm.xeto"}
+<Form.ToolBar>
+  <ToolBar>
+    <ButtonToolItem Text="Click Me!" Command="{Binding ClickMeCommand}" />
+    <SeparatorToolItem />
+    <CheckToolItem Text="On Top" Command="{Binding AlwaysOnTopCommand}" />
+  </ToolBar>
+</Form.ToolBar>
+```
+
+```json {title="MainForm.jeto"}
+"ToolBar": {
+  "Items": [
+    { "$type": "ButtonToolItem", "Text": "Click Me!", "Command": "{Binding ClickMeCommand}" },
+    { "$type": "SeparatorToolItem" },
+    { "$type": "CheckToolItem", "Text": "On Top", "Command": "{Binding AlwaysOnTopCommand}" }
+  ]
+}
+```
+
+{{< /code-tabs >}}
+
+Set `Image` on a command, or on a tool item in XAML and JSON, to show an icon in the toolbar.
+
+Next: [Tutorial 3 Layout](./Tutorial-3-Table-Layout)

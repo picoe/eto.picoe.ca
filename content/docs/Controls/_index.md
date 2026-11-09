@@ -27,7 +27,6 @@ The standard controls are:
 * [ListBox](/api/type/eto.forms.listbox/) - A scrollable list of items
 * [ListControl](/api/type/eto.forms.listcontrol/) - Base for ListBox, DropDown, ComboBox, and other list-type controls
 * [MaskedTextBox](/api/type/eto.forms.maskedtextbox/) - TextBox for variable or fixed length masks
-* [Navigation](/api/type/eto.forms.navigation/) - (mobile) - A pane that can present multiple pages
 * [NumericUpDown](/api/type/eto.forms.numericupdown/) - Numeric control that allows the user to adjust the value with the mouse
 * [Panel](/api/type/eto.forms.panel/) - A blank panel container to add other controls
 * [PasswordBox](/api/type/eto.forms.passwordbox/) - Enter passwords or sensitive data

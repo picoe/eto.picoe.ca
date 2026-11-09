@@ -2,65 +2,33 @@
 title: "Troubleshooting"
 ---
 
-When troubleshooting errors in Eto.Forms, be sure to check the inner exception(s).  You can do this by adding `$exception.GetBaseException()` to the watch window after an exception is thrown.
+When troubleshooting errors in Eto.Forms, be sure to check the inner exception(s). You can do this by adding `$exception.GetBaseException()` to the watch window after an exception is thrown.
 
-## Problem: WPF platform does not run, but other platforms do
+## WPF doesn't run, but other platforms do
 
-**Exception thrown**: Eto.HandlerInvalidException: Could not create instance of type Eto.Forms.IForm  
-**Base exception**: InvalidOperationException: The calling thread must be STA, because many UI components require this.  
-**Solution**: Add [STAThread] to your Main() method  
+**Exception thrown**: `Eto.HandlerInvalidException: Could not create instance of type Eto.Forms.IForm`  
+**Base exception**: `InvalidOperationException: The calling thread must be STA, because many UI components require this.`  
+**Solution**: Add `[STAThread]` to your `Main()` method. The project templates already include it.
 
-## Problem: Newtonsoft.Json is clearly available, Eto.Json refuses to load it.
+## A Mac app built on Windows doesn't run on a Mac
 
-**Exception thrown**: System.IO.FileLoadException: Could not load file or assembly 'Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed' or one of its dependencies. The located assembly's manifest definition does not match the assembly reference.
-**Solution**: Use the following runtime redirect in your app.config file:
-
-```xml
-<runtime>
-    <assemblyBinding xmlns="urn:schemas-microsoft-com:asm.v1">
-        <dependentAssembly>
-            <assemblyIdentity name="Newtonsoft.Json" publicKeyToken="30ad4fe6b2a6aeed" culture="neutral" />
-            <bindingRedirect oldVersion="0.0.0.0-6.0.0.0" newVersion="6.0.0.0" />
-        </dependentAssembly>
-    </assemblyBinding>
-</runtime>
-```
-
-### Problem: The .app bundle application compiled on Windows does not run on Mac
-
-This is usually because the executable bit is not set on the executable file within the .app bundle.  Since windows file systems (NTFS, usually) do not support executable bits like *nix file systems, this information is lost.
-
-For development or testing purposes, you can get your apps to run on Mac by running these commands:
+Windows file systems don't keep the executable bit, so it's lost on the executable inside the `.app` bundle. For testing, you can fix it on the Mac with:
 
 ```sh
-chmod +x MyApplication.Desktop.app/Contents/MacOS/MyApplication.Desktop
-xattr -c MyApplication.Desktop.app
+chmod +x MyApp.app/Contents/MacOS/MyApp
+xattr -c MyApp.app
 ```
 
-To distribute your apps to run on the Mac without these steps, they need to be [code signed and notarized](./Mac-Code-Signing-and-Notarization).
+To give your app to other people, [sign and notarize it](./Mac-Code-Signing-and-Notarization) instead.
 
-### Problem: My Mac application doesn't run from the command line
+## A Mac app doesn't run from the command line
 
-To run an .app bundle on macOS you cannot use mono or dotnet at the command line to run it, you must run the native executable to launch the application using MonoMac or Xamarin.Mac, or use open. The native executable is within the `Contents/MacOS` folder in the .app bundle. E.g. from Terminal:
+You can't start an `.app` bundle with `dotnet MyApp.dll`. Use `dotnet run`, `open MyApp.app`, or run the executable inside the bundle directly:
 
 ```sh
-./MyApplication.Desktop.app/Contents/MacOS/MyApplication.Desktop
+./MyApp.app/Contents/MacOS/MyApp
 ```
 
-or
+## GTK doesn't run on Windows or macOS
 
-```sh
-open MyApplication.Desktop.app
-```
-
-### Problem: When distributing an OS X app to users, the application quits with the message "The operation couldn’t be completed. (OSStatus error -67062.)"
-
-This is caused because you are archiving the .app bundle on your Mac, which will include the __MACOS folder in the archive to set file permissions, etc.  You must create a .zip archive without the __MACOS folder by zipping on Windows, or following [these instructions](http://stackoverflow.com/questions/10924236/mac-zip-compress-without-macosx-folder) on OS X.
-
-### Problem: GTK# v2 app is not running on windows
-
-This can happen sometimes when the paths aren't set up correctly by the GTK#2 installer, and is not a problem with Eto.Forms.  Uninstalling then re-installing GTK# v2 (from [here](http://www.mono-project.com/download/#download-win)) and rebooting your machine usually works.  See [here](https://github.com/picoe/Eto/issues/442) for details if you want to get around this issue.
-
-### Problem: I'd like to run Gtk on Windows or Mac
-
-See [Running GTK on Multiple Platforms](./Running-Gtk)
+GTK isn't included with Windows or macOS. See [Running GTK on Windows or macOS](../QuickStart/Supported-Platforms#running-gtk-on-windows-or-macos).

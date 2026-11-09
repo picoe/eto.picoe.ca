@@ -1,98 +1,91 @@
 ---
-title: "Tutorial 3 - Table Layout"
+title: "Tutorial 3 - Layout"
 ---
 
-The ``TableLayout`` is the main layout for Eto.Forms to organize your controls.  It is far preferred over using a ``PixelLayout`` as it will accomodate various sizes of each control in all platforms.
+This tutorial builds a small sign-up form, and shows how to lay it out so it fits every platform.
 
-A TableLayout is somewhat similar to an HTML table, but with a few differences: 
+## Laying out a form
 
-1. A ``TableCell`` can only contain a single control, however that control can be another container, such as a TableLayout.
-2. The width of a column or height of a row is determined by the controls added to the column/row
-3. If you set the scaling on a column or row, it will share the remaining space of the TableLayout's container with all other scaled columns/rows equally.
+Controls are different sizes on each platform, so Eto.Forms layouts size them for you rather than placing them at fixed positions. Rows and columns fit their contents, and you choose which ones stretch to fill any extra space.
 
-## Simple Table
+The `TableLayout` lines controls up in rows and columns, like an HTML table. Replace the content from [Tutorial 1](./Tutorial-1-Hello-Eto.Forms) with:
 
-In this tutorial, we will start from [Tutorial 1 Hello Eto.Forms](./Tutorial-1-Hello-Eto.Forms).
+{{< code-tabs >}}
 
-This shows how to create a simple table with three columns and three rows.
+```csharp {title="MainForm.cs"}
+var nameBox = new TextBox();
+var emailBox = new TextBox();
+var newsletterBox = new CheckBox { Text = "Send me the newsletter" };
+var signUpButton = new Button { Text = "Sign Up" };
 
-1. First, create a new TableLayout object.
-
-  ```csharp
-  var layout = new TableLayout();
-  ```
-
-2. Define the padding around the border of the table, and spacing between the cells of the table.
-
-  ```csharp
-  layout.Spacing = new Size(5, 5); // space between each cell
-  layout.Padding = new Padding(10, 10, 10, 10); // space around the table's sides
-  ```
-
-3. Add a new row with three labels, the first and second column set scaling of the width to true to share the remaining space of the container. The third column will auto size to the controls in the column.
-
-  ```csharp
-  layout.Rows.Add(new TableRow(
-    new TableCell(new Label { Text = "First Column" }, true),
-    new TableCell(new Label { Text = "Second Column" }, true),
-    new Label { Text = "Third Column" }
-  ));
-  ```
-
-4. Add another row with some data entry controls
-
-  ```csharp
-  layout.Rows.Add(new TableRow(
-    new TextBox { Text = "Some Text" },
-    new DropDown { Items = { "Item 1", "Item 2", "Item 3" } },
-    new CheckBox { Text = "A checkbox" }
-  ));
-  ```
-
-5. Add a final empty row that scales to fill the remaining height
-
-  ```csharp
-  layout.Rows.Add(new TableRow { ScaleHeight = true });
-    
-  // or, this is the same as doing:
-    
-  layout.Rows.Add(null);
-  ```
-
-6. Set the content of the form to use the layout
-
-  ```csharp
-  this.Content = layout;
-  ```
-
-## Declarative Approach
-
-The same table can be defined declaratively using the C# initializer pattern.
-This produces the exact same result but is more succinct and can be easier to read.
-
-```csharp
 Content = new TableLayout
 {
-  Spacing = new Size(5, 5), // space between each cell
-  Padding = new Padding(10, 10, 10, 10), // space around the table's sides
-  Rows =
-  {
-    new TableRow(
-      new TableCell(new Label { Text = "First Column" }, true), 
-      new TableCell(new Label { Text = "Second Column" }, true),
-      new Label { Text = "Third Column" }
-    ),
-    new TableRow(
-      new TextBox { Text = "Some text" },
-      new DropDown { Items = { "Item 1", "Item 2", "Item 3" } },
-      new CheckBox { Text = "A checkbox" }
-    ),
-    // by default, the last row & column will get scaled. This adds a row at the end to take the extra space of the form.
-    // otherwise, the above row will get scaled and stretch the TextBox/ComboBox/CheckBox to fill the remaining height.
-    new TableRow { ScaleHeight = true }
-  }
+    Padding = 10,             // space around the edge
+    Spacing = new Size(5, 5), // space between cells
+    Rows =
+    {
+        new TableRow("Name", new TableCell(nameBox, true)),
+        new TableRow("Email", emailBox),
+        new TableRow(null, newsletterBox),
+        null, // an empty row that takes up the remaining height
+        new TableRow(null, TableLayout.AutoSized(signUpButton))
+    }
 };
 ```
 
-- [C# Source](https://github.com/picoe/Eto/blob/develop/samples/Tutorials/CSharp/Tutorial3/Main.cs)
-- [F# Source](https://github.com/picoe/Eto/blob/develop/samples/Tutorials/FSharp/Tutorial3/Program.fs)
+```xaml {title="MainForm.xeto"}
+<TableLayout Spacing="5,5">
+  <TableRow>
+    <Label>Name</Label>
+    <TableCell ScaleWidth="True">
+      <TextBox />
+    </TableCell>
+  </TableRow>
+  <TableRow>
+    <Label>Email</Label>
+    <TextBox />
+  </TableRow>
+  <TableRow>
+    <TableCell />
+    <CheckBox Text="Send me the newsletter" />
+  </TableRow>
+  <TableRow ScaleHeight="True" />
+  <TableRow>
+    <TableCell />
+    <TableLayout>
+      <TableRow>
+        <Button Text="Sign Up" />
+        <TableCell />
+      </TableRow>
+    </TableLayout>
+  </TableRow>
+</TableLayout>
+```
+
+```json {title="MainForm.jeto"}
+"Content": {
+  "$type": "TableLayout",
+  "Spacing": "5,5",
+  "Rows": [
+    [ "Name", { "ScaleWidth": true, "Control": { "$type": "TextBox" } } ],
+    [ "Email", { "$type": "TextBox" } ],
+    [ null, { "$type": "CheckBox", "Text": "Send me the newsletter" } ],
+    null,
+    [ null, [ [ { "$type": "Button", "Text": "Sign Up" }, null ] ] ]
+  ]
+}
+```
+
+{{< /code-tabs >}}
+
+In JSON, each row is a list of cells, and a list inside a cell is a nested table.
+
+A few things to note:
+
+- Setting `ScaleWidth` on the text box's cell makes the second column stretch with the window. The labels column stays as wide as its widest label.
+- The empty row (`null`, or `ScaleHeight` in XAML) stretches to take up the remaining height. Without it, the last row would stretch instead.
+- The button keeps its natural size rather than filling the column. In C#, `TableLayout.AutoSized` does this; in XAML and JSON, a nested table with an empty cell after the button does the same.
+
+See [TableLayout](../Controls/TableLayout) for more, and [DynamicLayout](../Controls/DynamicLayout) and [StackLayout](../Controls/StackLayout) for other ways to arrange controls.
+
+Next: [Tutorial 4 Data Binding](./Tutorial-4-Data-Binding)

@@ -14,7 +14,7 @@ There are a number of available Cell types:
 
 When creating cells, you must set its binding which can be done via index, property via reflection, or delegate/lambda methods.
 
-[API Documentation](http://api.etoforms.picoe.ca/html/T_Eto_Forms_GridView.htm)
+[API Documentation](/api/type/eto.forms.gridview/)
 
 ## POCO
 

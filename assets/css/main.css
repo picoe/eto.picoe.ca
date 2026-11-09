@@ -55,7 +55,7 @@ img {
 }
 
 .hero-inner {
-  max-width: 760px;
+  max-width: 960px;
   margin: 0 auto;
 }
 
@@ -73,7 +73,7 @@ img {
 }
 
 .hero p {
-  max-width: 640px;
+  max-width: none;
   margin: 0 auto 1.75rem;
   color: var(--color-muted);
   font-size: 1.1rem;
@@ -92,11 +92,84 @@ img {
   box-shadow: var(--shadow-soft);
 }
 
+.cta-btn.secondary {
+  background: transparent;
+  color: var(--color-primary-dark);
+  border: 1px solid var(--color-primary-dark);
+  box-shadow: none;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.hero-install {
+  max-width: 520px;
+  margin: 2rem auto 0;
+  text-align: left;
+}
+
+.hero-install .code-block {
+  margin: 0;
+}
+
+.hero-badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.75rem;
+  list-style: none;
+  padding: 0;
+  margin: 1.25rem 0 0;
+  font-size: 0.9rem;
+}
+
+.hero-badges img {
+  display: block;
+}
+
+.showcase {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 2rem;
+  align-items: center;
+}
+
+.showcase .code-tabs {
+  margin: 0;
+}
+
+.showcase-shots {
+  margin: 0;
+  text-align: center;
+}
+
+.showcase-shots img {
+  display: block;
+  margin: 0 auto;
+}
+
+.showcase-shots figcaption {
+  margin: -0.5rem 0 1rem;
+  color: var(--color-muted);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 800px) {
+  .showcase {
+    grid-template-columns: 1fr;
+  }
+}
+
 .feature-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1.5rem;
-  padding: 3rem 1.5rem;
+  padding: 3rem 0;
   max-width: 1100px;
   margin: 0 auto;
 }
@@ -273,8 +346,9 @@ a.sidebar-heading:hover,
   overflow-x: auto;
 }
 
-/* Tabs show the language, so blocks inside them (and unlabelled ones) float just the copy button. */
-.code-tabs.has-tabs .code-block-bar,
+/* Tabs show the language, so blocks inside them (and unlabelled ones) float just the copy button.
+   Blocks with a title, such as a file name, keep their bar. */
+.code-tabs.has-tabs .code-block:not(.has-title) .code-block-bar,
 .code-block.no-label .code-block-bar {
   position: absolute;
   top: 0.3rem;
@@ -290,11 +364,11 @@ a.sidebar-heading:hover,
   position: relative;
 }
 
-.code-tabs.has-tabs .code-block-label {
+.code-tabs.has-tabs .code-block:not(.has-title) .code-block-label {
   display: none;
 }
 
-.code-tabs.has-tabs .code-block pre,
+.code-tabs.has-tabs .code-block:not(.has-title) pre,
 .code-block.no-label pre {
   padding-right: 5rem;
 }

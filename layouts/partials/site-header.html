@@ -1,12 +1,11 @@
-{{- /* Pass "active" to mark a menu entry for a page Hugo doesn't build, and "owl" to leave marks
-       where Owl puts its sidebar toggle and API pickers on the API pages. */ -}}
+{{- /* Pass "active" to mark a menu entry for a page Hugo doesn't build, and "owl" to leave a mark
+       where Owl puts its API pickers on the API pages. */ -}}
 {{- $page := .page -}}
 {{- $active := .active -}}
 {{- $owl := .owl -}}
 <header class="site-header">
   <div class="site-header-inner">
     <div class="site-header-start">
-      {{- if $owl }}{{ "<!-- owl:sidebar-toggle -->" | safeHTML }}{{ end }}
       <a class="brand" href="{{ relURL "/" }}">
         <img src="{{ "img/logo.svg" | relURL }}" alt="Eto.Forms logo" />
         <span>{{ site.Title }}</span>
