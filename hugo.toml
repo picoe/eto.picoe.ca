@@ -30,17 +30,17 @@ dotnet run"""
 
   [[params.featureCards]]
   title = "Write UI Your Way"
-  icon = "/img/eto-easy.svg"
+  icon = "/img/feature-write-ui.svg"
   body = "Build your UI in C#, VB.NET or F#, or in XAML or JSON. Layouts like `StackLayout` and `TableLayout` size themselves, so there's no pixel pushing."
 
   [[params.featureCards]]
   title = "Native on Every Platform"
-  icon = "/img/eto-native.svg"
+  icon = "/img/feature-native-controls.svg"
   body = "Each control is the platform's own: WPF or WinForms on Windows, Cocoa on macOS and GTK on Linux. Your app looks and behaves like it belongs."
 
   [[params.featureCards]]
   title = "Drop to Native When You Need To"
-  icon = "/img/eto-flexible.svg"
+  icon = "/img/feature-native-access.svg"
   body = "Reach the underlying native control from any Eto control, embed Eto in an existing app, or write your own custom controls."
 
 [[params.footerColumns]]
