@@ -182,6 +182,11 @@
   document.addEventListener('mousedown', function (e) {
     if (!box.contains(e.target)) open(false);
   });
+  // Keeps focus in the box while a result is pressed; Safari doesn't focus links on click, so the
+  // blur below would otherwise hide the list before the click lands.
+  list.addEventListener('mousedown', function (e) {
+    e.preventDefault();
+  });
   input.addEventListener('blur', function () {
     setTimeout(function () {
       if (!box.contains(document.activeElement)) open(false);
