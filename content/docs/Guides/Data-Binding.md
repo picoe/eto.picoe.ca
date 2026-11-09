@@ -37,6 +37,8 @@ Using MVVM typically requires that your view model implement `INotifyPropertyCha
 
 For example, this shows a simple model with a single MyString property and binds it to `TextBox.Text` using the `TextBox.TextBinding` helper:
 
+{{< code-tabs >}}
+
 ```cs
 public class MyForm : Form
 {
@@ -79,8 +81,113 @@ public class MyModel : INotifyPropertyChanged
 
 ```
 
+```xaml {title="MyForm.xeto"}
+<TextBox Text="{Binding MyString}" />
+```
+
+```cs {tab="xaml" title="MyForm.xeto.cs"}
+public MyForm()
+{
+    XamlReader.Load(this);
+
+    // set the view model for the form and all child controls
+    DataContext = new MyModel { MyString = "Hello!" };
+}
+```
+
+```json {title="MyForm.jeto"}
+"Content": { "$type": "TextBox", "Text": "{Binding MyString}" }
+```
+
+```cs {tab="json" title="MyForm.jeto.cs"}
+public MyForm()
+{
+    JsonReader.Load(this);
+
+    // set the view model for the form and all child controls
+    DataContext = new MyModel { MyString = "Hello!" };
+}
+```
+
+```fsharp
+type MyForm() as this =
+    inherit Form()
+    do
+        let textBox = new TextBox()
+        textBox.TextBinding.BindDataContext(fun (m: MyModel) -> m.MyString) |> ignore
+
+        this.Content <- textBox
+
+        // set the view model for the form and all child controls
+        this.DataContext <- MyModel(MyString = "Hello!")
+
+// typically implemented view model
+and MyModel() =
+    let propertyChanged = Event<PropertyChangedEventHandler, PropertyChangedEventArgs>()
+    let mutable myString = ""
+
+    member this.MyString
+        with get () = myString
+        and set value =
+            if myString <> value then
+                myString <- value
+                propertyChanged.Trigger(this, PropertyChangedEventArgs(nameof this.MyString))
+
+    interface INotifyPropertyChanged with
+        [<CLIEvent>]
+        member _.PropertyChanged = propertyChanged.Publish
+```
+
+```python
+import clr
+import Rhino.UI
+import Eto.Forms as forms
+
+try:
+    prop = clr.clrproperty  # Python 3: bindings need .NET properties
+except AttributeError:
+    prop = lambda type: property  # IronPython: bindings use Python properties
+
+class MyForm(forms.Form):
+    def __init__(self):
+        super(MyForm, self).__init__()
+        textBox = forms.TextBox()
+        textBox.TextBinding.BindDataContext("MyString")
+
+        self.Content = textBox
+
+        # set the view model for the form and all child controls
+        model = MyModel()
+        model.MyString = "Hello!"
+        self.DataContext = model
+
+# typically implemented view model, using Rhino's INotifyPropertyChanged base class
+class MyModel(Rhino.UI.ViewModel):
+    __namespace__ = "MyApp"  # Python 3: makes this a .NET class
+
+    def __init__(self):
+        super(MyModel, self).__init__()
+        self._myString = None
+
+    @prop(str)
+    def MyString(self):
+        return self._myString
+
+    @MyString.setter
+    def MyString(self, value):
+        if self._myString != value:
+            self._myString = value
+            self.RaisePropertyChanged("MyString")
+```
+
+{{< /code-tabs >}}
+
+Python binds by property name, as it has no expressions like C# and F#. The properties must be declared as above so that .NET can see them.
+
 
 Many times you would want to control the enabled or readonly state of controls using your view model.  This is easily achived using the `BindDataContext` directly on the control:
+
+{{< code-tabs >}}
 
 ```cs
 // for your textBox:
@@ -108,6 +215,53 @@ public class MyModel : INotifyPropertyChanged
 
 ```
 
+```xaml
+<TextBox Text="{Binding MyString}" Enabled="{Binding IsEnabled}" />
+```
+
+```json
+{ "$type": "TextBox", "Text": "{Binding MyString}", "Enabled": "{Binding IsEnabled}" }
+```
+
+```fsharp
+// for your textBox:
+textBox.BindDataContext((fun (c: TextBox) -> c.Enabled), (fun (m: MyModel) -> m.IsEnabled)) |> ignore
+
+// and on your model:
+and MyModel() =
+    // ... snipped for brevity
+
+    let mutable isEnabled = true
+
+    member this.IsEnabled
+        with get () = isEnabled
+        and set value =
+            if isEnabled <> value then
+                isEnabled <- value
+                propertyChanged.Trigger(this, PropertyChangedEventArgs(nameof this.IsEnabled))
+```
+
+```python
+# for your textBox:
+forms.BindableExtensions.BindDataContext[bool](textBox, "Enabled", "IsEnabled")
+
+# and on your model:
+class MyModel(Rhino.UI.ViewModel):
+    # ... snipped for brevity
+
+    @prop(bool)
+    def IsEnabled(self):
+        return self._isEnabled
+
+    @IsEnabled.setter
+    def IsEnabled(self, value):
+        if self._isEnabled != value:
+            self._isEnabled = value
+            self.RaisePropertyChanged("IsEnabled")
+```
+
+{{< /code-tabs >}}
+
 Here you will note that the first expression of the `BindDataContext` method specifies the property of the TextBox to bind to, and the second expression is the model binding.  An astute reader may realize that you can use the same mechanism to bind the `Text` property instead of using the `TextBinding` binding helper.
 
 ## Direct Binding
@@ -120,6 +274,8 @@ You can bind to either a specific object instance, or use [delegates](#delegates
 
 For example, you can bind to a specific object:
 
+{{< code-tabs >}}
+
 ```cs
 var textBox = new TextBox();
 
@@ -127,6 +283,24 @@ textBox.TextBinding.Bind(myModel, m => m.MyString);
 // or
 textBox.Bind(c => c.Enabled, myModel, m => m.MyBool);
 ```
+
+```fsharp
+let textBox = new TextBox()
+
+textBox.TextBinding.Bind(myModel, fun (m: MyModel) -> m.MyString) |> ignore
+// or
+textBox.Bind((fun (c: TextBox) -> c.Enabled), myModel, (fun (m: MyModel) -> m.MyBool)) |> ignore
+```
+
+```python
+textBox = forms.TextBox()
+
+textBox.TextBinding.Bind(myModel, "MyString")
+# or
+forms.BindableExtensions.Bind[bool](textBox, "Enabled", myModel, "MyBool")
+```
+
+{{< /code-tabs >}}
 
 ## Converting Values
 
@@ -136,12 +310,28 @@ To do this, you use the `Binding.Property()` helper along with the `Convert()`, 
 
 `Binding.Property` can be used to create a property binding similar to the other binding methods.  For example, the following are identical:
 
+{{< code-tabs >}}
+
 ```cs
 textBox.TextBinding.BindDataContext((MyModel m) => m.MyString);
 textBox.TextBinding.BindDataContext(Binding.Property((MyModel m) => m.MyString));
 ```
 
+```fsharp
+textBox.TextBinding.BindDataContext(fun (m: MyModel) -> m.MyString) |> ignore
+textBox.TextBinding.BindDataContext(Binding.Property(fun (m: MyModel) -> m.MyString)) |> ignore
+```
+
+```python
+textBox.TextBinding.BindDataContext("MyString")
+textBox.TextBinding.BindDataContext(forms.Binding.Property[str]("MyString"))
+```
+
+{{< /code-tabs >}}
+
 With the Binding.Property, we can then call `Convert()`, `Cast()`, etc.  For example, to convert an enum to/from a string:
+
+{{< code-tabs >}}
 
 ```cs
 textBox.TextBinding.BindDataContext(
@@ -150,12 +340,30 @@ textBox.TextBinding.BindDataContext(
 );
 ```
 
+```fsharp
+textBox.TextBinding.BindDataContext(
+    Binding.Property(fun (m: MyModel) -> m.MyEnum)
+        .Convert((fun r -> r.ToString()), (fun (v: string) -> Enum.Parse<MyEnum>(v)))
+) |> ignore
+```
+
+{{< /code-tabs >}}
+
 Another useful trick is for say the `NumericUpDown.ValueBinding`, which requires a double, but if your model has an `int` you can cast it like so:
+
+{{< code-tabs >}}
 
 ```cs
 var numericUpDown = new NumericUpDown();
 numericUpDown.ValueBinding.Cast<int>().BindDataContext((MyModel m) => m.MyInt);
 ```
+
+```fsharp
+let numericUpDown = new NumericUpDown()
+numericUpDown.ValueBinding.Cast<int>().BindDataContext(fun (m: MyModel) -> m.MyInt) |> ignore
+```
+
+{{< /code-tabs >}}
 
 ## Binding Direction
 
@@ -172,6 +380,8 @@ When using delegate methods, Eto.Forms cannot automatically wire up property cha
 You can specify either a getter delegate and/or a setter delegate. Note that if you only supply a getter or setter delegate, then the binding will only be one way.
 
 An example of using a delegate to get/set values from a text box:
+
+{{< code-tabs >}}
 
 ```cs
 var textBox = new TextBox();
@@ -195,6 +405,35 @@ textBox.TextBinding.Bind(GetValue, SetValue);
 var isEnabled = false;
 textBox.Bind(c => c.Enabled, Binding.Delegate(() => isEnabled, val => isEnabled = val));
 ```
+
+```fsharp
+let textBox = new TextBox()
+
+// bind to a view model's string GetValue() and void SetValue(string) methods
+textBox.TextBinding.BindDataContext((fun (m: MyModel) -> m.GetValue()), (fun (m: MyModel) value -> m.SetValue(value))) |> ignore
+
+// get/set values from an object directly:
+textBox.TextBinding.Bind((fun () -> someObject.GetValue()), (fun value -> someObject.SetValue(value))) |> ignore
+
+// Bind other control properties using the Binding.Delegate helper:
+let isEnabled = ref false
+textBox.Bind((fun (c: TextBox) -> c.Enabled), Binding.Delegate((fun () -> isEnabled.Value), (fun value -> isEnabled.Value <- value))) |> ignore
+```
+
+```python
+import System
+
+textBox = forms.TextBox()
+
+# get/set values from an object directly:
+textBox.TextBinding.Bind(
+    System.Func[str](lambda: someObject.GetValue()),
+    System.Action[str](lambda value: someObject.SetValue(value)))
+```
+
+{{< /code-tabs >}}
+
+In Python, wrap the functions in `System.Func` and `System.Action` so the right `Bind` is picked.
 
 ### BindingCollection
 

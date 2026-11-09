@@ -16,6 +16,8 @@ This is an example of creating a custom text box control.
 
 In your cross-platform library:
 
+{{< code-tabs >}}
+
 ```csharp
 // control to use in your eto.forms code
 [Handler(typeof(IMyCustomControl))]
@@ -37,7 +39,31 @@ public class MyCustomControl : Control
 }
 ```
 
+```fsharp
+// interface to the platform implementations
+type IMyCustomControl =
+    inherit Control.IHandler
+    abstract MyProperty: string with get, set
+
+// control to use in your eto.forms code
+[<Handler(typeof<IMyCustomControl>)>]
+type MyCustomControl() =
+    inherit Control()
+
+    member private this.CustomHandler = this.Handler :?> IMyCustomControl
+
+    member this.MyProperty
+        with get () = this.CustomHandler.MyProperty
+        and set value = this.CustomHandler.MyProperty <- value
+```
+
+{{< /code-tabs >}}
+
+F# can't nest types, so the interface sits beside the control rather than inside it.
+
 In your Mac platform assembly:
+
+{{< code-tabs >}}
 
 ```csharp
 public class MyCustomControlHandler : MacControl<NSTextField, MyCustomControl, MyCustomControl.ICallback>, MyCustomControl.IMyCustomControl
@@ -55,7 +81,23 @@ public class MyCustomControlHandler : MacControl<NSTextField, MyCustomControl, M
 }
 ```
 
+```fsharp
+type MyCustomControlHandler() as this =
+    inherit MacControl<NSTextField, MyCustomControl, Control.ICallback>()
+
+    do this.Control <- new NSTextField()
+
+    interface IMyCustomControl with
+        member this.MyProperty
+            with get () = this.Control.StringValue
+            and set value = this.Control.StringValue <- (if isNull value then "" else value)
+```
+
+{{< /code-tabs >}}
+
 In your WPF assembly:
+
+{{< code-tabs >}}
 
 ```csharp
 public class MyCustomControlHandler : WpfControl<System.Windows.Controls.TextBox, MyCustomControl, MyCustomControl.ICallback>, MyCustomControl.IMyCustomControl
@@ -73,7 +115,23 @@ public class MyCustomControlHandler : WpfControl<System.Windows.Controls.TextBox
 }
 ```
 
+```fsharp
+type MyCustomControlHandler() as this =
+    inherit WpfControl<System.Windows.Controls.TextBox, MyCustomControl, Control.ICallback>()
+
+    do this.Control <- new System.Windows.Controls.TextBox()
+
+    interface IMyCustomControl with
+        member this.MyProperty
+            with get () = this.Control.Text
+            and set value = this.Control.Text <- value
+```
+
+{{< /code-tabs >}}
+
 To register your new control, you must add it to the platform instance.  This can be done *before* creating your application in your main() method.
+
+{{< code-tabs >}}
 
 ```csharp
 var platform = new Eto.Mac.Platform(); // mac platform
@@ -90,3 +148,15 @@ new Application(platform).Run(
     }
 );
 ```
+
+```fsharp
+let platform = new Eto.Mac.Platform() // mac platform
+
+// to register your custom control handler, call this before using your class:
+platform.Add<IMyCustomControl>(fun () -> new MyCustomControlHandler())
+
+// create application object, and run
+(new Application(platform)).Run(new Form(Title = "Hello!", Content = new MyCustomControl(MyProperty = "There")))
+```
+
+{{< /code-tabs >}}

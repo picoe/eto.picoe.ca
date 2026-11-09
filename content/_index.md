@@ -81,4 +81,50 @@ public class MainForm : Form
 }
 ```
 
+```fsharp {title="MainForm.fs"}
+type MainForm() as this =
+    inherit Form()
+    do
+        this.Title <- "Hello Eto"
+
+        let nameBox = new TextBox(PlaceholderText = "Your name")
+        let helloButton = new Button(Text = "Say Hello")
+        helloButton.Click.Add(fun _ ->
+            MessageBox.Show(this, $"Hello, {nameBox.Text}!") |> ignore)
+
+        let layout = new StackLayout(Padding = 10, Spacing = 5, HorizontalContentAlignment = HorizontalAlignment.Stretch)
+        layout.Items.Add("What's your name?")
+        layout.Items.Add(StackLayoutItem(nameBox))
+        layout.Items.Add(StackLayoutItem(helloButton))
+        this.Content <- layout
+```
+
+```python {title="MainForm.py"}
+import Eto.Forms as forms
+import Eto.Drawing as drawing
+
+class MainForm(forms.Form):
+    def __init__(self):
+        super(MainForm, self).__init__()
+        self.Title = "Hello Eto"
+
+        nameBox = forms.TextBox()
+        nameBox.PlaceholderText = "Your name"
+        helloButton = forms.Button()
+        helloButton.Text = "Say Hello"
+        helloButton.Click += lambda sender, e: forms.MessageBox.Show(self, "Hello, {}!".format(nameBox.Text))
+
+        label = forms.Label()
+        label.Text = "What's your name?"
+
+        layout = forms.StackLayout(
+            forms.StackLayoutItem(label),
+            forms.StackLayoutItem(nameBox),
+            forms.StackLayoutItem(helloButton))
+        layout.Padding = drawing.Padding(10)
+        layout.Spacing = 5
+        layout.HorizontalContentAlignment = forms.HorizontalAlignment.Stretch
+        self.Content = layout
+```
+
 {{< /code-tabs >}}

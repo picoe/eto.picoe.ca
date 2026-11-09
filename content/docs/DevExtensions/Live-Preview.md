@@ -79,10 +79,19 @@ or an object with a `$type` and the sample values to use:
 
 In `.eto.cs` views, or anywhere else in your code, check `Control.IsDesignMode` to tell when you're running in the preview:
 
+{{< code-tabs >}}
+
 ```csharp
 if (IsDesignMode)
     DataContext = new MyViewModel { Name = "Sample name" };
 ```
+
+```fsharp
+if Control.IsDesignMode then
+    this.DataContext <- MyViewModel(Name = "Sample name")
+```
+
+{{< /code-tabs >}}
 
 ### Things to know
 

@@ -76,6 +76,45 @@ Content = new TableLayout
 }
 ```
 
+```fsharp {title="MainForm.fs"}
+let nameBox = new TextBox()
+let emailBox = new TextBox()
+let newsletterBox = new CheckBox(Text = "Send me the newsletter")
+let signUpButton = new Button(Text = "Sign Up")
+
+let layout = new TableLayout(Padding = 10, Spacing = Size(5, 5))
+layout.Rows.Add(TableRow("Name", TableCell(nameBox, true)))
+layout.Rows.Add(TableRow("Email", TableCell(emailBox)))
+layout.Rows.Add(TableRow(null, TableCell(newsletterBox)))
+layout.Rows.Add(null) // an empty row that takes up the remaining height
+layout.Rows.Add(TableRow(null, TableCell(TableLayout.AutoSized(signUpButton))))
+this.Content <- layout
+```
+
+```python {title="MainForm.py"}
+nameBox = forms.TextBox()
+emailBox = forms.TextBox()
+newsletterBox = forms.CheckBox()
+newsletterBox.Text = "Send me the newsletter"
+signUpButton = forms.Button()
+signUpButton.Text = "Sign Up"
+
+nameLabel = forms.Label()
+nameLabel.Text = "Name"
+emailLabel = forms.Label()
+emailLabel.Text = "Email"
+
+layout = forms.TableLayout()
+layout.Padding = drawing.Padding(10)  # space around the edge
+layout.Spacing = drawing.Size(5, 5)   # space between cells
+layout.Rows.Add(forms.TableRow(forms.TableCell(nameLabel), forms.TableCell(nameBox, True)))
+layout.Rows.Add(forms.TableRow(forms.TableCell(emailLabel), forms.TableCell(emailBox)))
+layout.Rows.Add(forms.TableRow(None, forms.TableCell(newsletterBox)))
+layout.Rows.Add(None)  # an empty row that takes up the remaining height
+layout.Rows.Add(forms.TableRow(None, forms.TableCell(forms.TableLayout.AutoSized(signUpButton))))
+self.Content = layout
+```
+
 {{< /code-tabs >}}
 
 In JSON, each row is a list of cells, and a list inside a cell is a nested table.
@@ -84,7 +123,7 @@ A few things to note:
 
 - Setting `ScaleWidth` on the text box's cell makes the second column stretch with the window. The labels column stays as wide as its widest label.
 - The empty row (`null`, or `ScaleHeight` in XAML) stretches to take up the remaining height. Without it, the last row would stretch instead.
-- The button keeps its natural size rather than filling the column. In C#, `TableLayout.AutoSized` does this; in XAML and JSON, a nested table with an empty cell after the button does the same.
+- The button keeps its natural size rather than filling the column. In code, `TableLayout.AutoSized` does this; in XAML and JSON, a nested table with an empty cell after the button does the same.
 
 See [TableLayout](../Controls/TableLayout) for more, and [DynamicLayout](../Controls/DynamicLayout) and [StackLayout](../Controls/StackLayout) for other ways to arrange controls.
 

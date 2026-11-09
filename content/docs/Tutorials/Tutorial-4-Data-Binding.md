@@ -8,6 +8,8 @@ This tutorial connects the sign-up form from [Tutorial 3](./Tutorial-3-Table-Lay
 
 Rather than reading values out of each control, put them in the `MainViewModel` from [Tutorial 2](./Tutorial-2-Menus-and-Toolbars) and bind the controls to it. Add the sign-up properties and a command for the button:
 
+{{< code-tabs >}}
+
 ```csharp {title="MainViewModel.cs"}
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -51,7 +53,103 @@ public class MainViewModel : INotifyPropertyChanged
 }
 ```
 
+```fsharp {title="MainViewModel.fs"}
+open System
+open System.ComponentModel
+open Eto.Forms
+
+type MainViewModel() as this =
+    let propertyChanged = Event<PropertyChangedEventHandler, PropertyChangedEventArgs>()
+    let mutable name = ""
+
+    // ... menu commands from Tutorial 2
+
+    let signUpCommand =
+        new RelayCommand(
+            (fun () -> MessageBox.Show($"Welcome, {this.Name}!") |> ignore),
+            (fun () -> not (String.IsNullOrWhiteSpace this.Name)))
+
+    // ... command properties from Tutorial 2
+
+    member _.Name
+        with get () = name
+        and set value =
+            name <- value
+            propertyChanged.Trigger(this, PropertyChangedEventArgs(nameof this.Name))
+            signUpCommand.UpdateCanExecute() // enables the button once there's a name
+
+    member val Email = "" with get, set
+
+    member val Newsletter = true with get, set
+
+    member _.SignUpCommand = signUpCommand
+
+    interface INotifyPropertyChanged with
+        [<CLIEvent>]
+        member _.PropertyChanged = propertyChanged.Publish
+```
+
+```python {title="MainViewModel.py"}
+import clr
+import Rhino.UI
+import Eto.Forms as forms
+
+try:
+    prop = clr.clrproperty  # Python 3: bindings need .NET properties
+except AttributeError:
+    prop = lambda type: property  # IronPython: bindings use Python properties
+
+class MainViewModel(Rhino.UI.ViewModel):
+    __namespace__ = "MyApp"  # Python 3: makes this a .NET class
+
+    def __init__(self):
+        super(MainViewModel, self).__init__()
+        # ... menu commands from Tutorial 2
+
+        self._name = ""
+        self._email = ""
+        self._newsletter = True
+        self._signUpCommand = forms.RelayCommand(self.SignUp, lambda: bool(self.Name and self.Name.strip()))
+
+    @prop(str)
+    def Name(self):
+        return self._name
+
+    @Name.setter
+    def Name(self, value):
+        self._name = value
+        self.RaisePropertyChanged("Name")
+        self.SignUpCommand.UpdateCanExecute()  # enables the button once there's a name
+
+    @prop(str)
+    def Email(self):
+        return self._email
+
+    @Email.setter
+    def Email(self, value):
+        self._email = value
+
+    @prop(bool)
+    def Newsletter(self):
+        return self._newsletter
+
+    @Newsletter.setter
+    def Newsletter(self, value):
+        self._newsletter = value
+
+    @prop(forms.RelayCommand)
+    def SignUpCommand(self):
+        return self._signUpCommand
+
+    def SignUp(self):
+        forms.MessageBox.Show("Welcome, {}!".format(self.Name))
+```
+
+{{< /code-tabs >}}
+
 `INotifyPropertyChanged` lets the UI update when the view model changes. `SignUpCommand` runs when the button is clicked, and the button is only enabled while the command can run, which here is once a name has been typed.
+
+In Python, `Rhino.UI.ViewModel` provides `INotifyPropertyChanged`, and the properties are declared so .NET can see them to bind to.
 
 ## Binding the controls
 
@@ -108,6 +206,24 @@ signUpButton.BindDataContext(c => c.Command, (MainViewModel m) => m.SignUpComman
     [ null, [ [ { "$type": "Button", "Text": "Sign Up", "Command": "{Binding SignUpCommand}" }, null ] ] ]
   ]
 }
+```
+
+```fsharp {title="MainForm.fs"}
+// after creating the layout
+nameBox.TextBinding.BindDataContext(fun (m: MainViewModel) -> m.Name) |> ignore
+emailBox.TextBinding.BindDataContext(fun (m: MainViewModel) -> m.Email) |> ignore
+newsletterBox.CheckedBinding.Cast<bool>().BindDataContext(fun (m: MainViewModel) -> m.Newsletter) |> ignore
+signUpButton.BindDataContext((fun (c: Button) -> c.Command), (fun (m: MainViewModel) -> m.SignUpCommand :> System.Windows.Input.ICommand)) |> ignore
+```
+
+```python {title="MainForm.py"}
+from System.Windows.Input import ICommand
+
+# after creating the layout
+nameBox.TextBinding.BindDataContext("Name")
+emailBox.TextBinding.BindDataContext("Email")
+newsletterBox.CheckedBinding.BindDataContext("Newsletter")
+forms.BindableExtensions.BindDataContext[ICommand](signUpButton, "Command", "SignUpCommand")
 ```
 
 {{< /code-tabs >}}

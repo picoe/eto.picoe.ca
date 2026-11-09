@@ -25,6 +25,8 @@ You can also add `ButtonMenuItem`, `CheckMenuItem`, `RadioMenuItem` and `Separat
 
 Rather than creating commands in the form, put them in a view model. This keeps what your app does separate from how it looks, and lets XAML and JSON views use the same commands. Add this class to your project:
 
+{{< code-tabs >}}
+
 ```csharp {title="MainViewModel.cs"}
 using Eto.Forms;
 
@@ -44,6 +46,44 @@ public class MainViewModel
     }
 }
 ```
+
+```fsharp {title="MainViewModel.fs"}
+type MainViewModel() =
+    let clickMeCommand = new Command(MenuText = "Click Me!", ToolBarText = "Click Me!")
+    let quitCommand = new Command(MenuText = "Quit", Shortcut = (Application.Instance.CommonModifier ||| Keys.Q))
+    let aboutCommand = new Command(MenuText = "About...")
+
+    do
+        clickMeCommand.Executed.Add(fun _ -> MessageBox.Show("I was clicked!") |> ignore)
+        quitCommand.Executed.Add(fun _ -> Application.Instance.Quit())
+        aboutCommand.Executed.Add(fun _ -> (new AboutDialog()).ShowDialog(Application.Instance.MainForm) |> ignore)
+
+    member _.ClickMeCommand = clickMeCommand
+    member _.QuitCommand = quitCommand
+    member _.AboutCommand = aboutCommand
+```
+
+```python {title="MainViewModel.py"}
+import Eto.Forms as forms
+
+class MainViewModel(object):
+    def __init__(self):
+        self.ClickMeCommand = forms.Command()
+        self.ClickMeCommand.MenuText = "Click Me!"
+        self.ClickMeCommand.ToolBarText = "Click Me!"
+        self.ClickMeCommand.Executed += lambda sender, e: forms.MessageBox.Show("I was clicked!")
+
+        self.QuitCommand = forms.Command()
+        self.QuitCommand.MenuText = "Quit"
+        self.QuitCommand.Shortcut = forms.Application.Instance.CommonModifier | forms.Keys.Q
+        self.QuitCommand.Executed += lambda sender, e: forms.Application.Instance.Quit()
+
+        self.AboutCommand = forms.Command()
+        self.AboutCommand.MenuText = "About..."
+        self.AboutCommand.Executed += lambda sender, e: forms.AboutDialog().ShowDialog(forms.Application.Instance.MainForm)
+```
+
+{{< /code-tabs >}}
 
 ## The menu bar
 
@@ -124,6 +164,38 @@ public MainForm()
 }
 ```
 
+```fsharp {title="MainForm.fs"}
+let model = new MainViewModel()
+this.DataContext <- model
+
+let fileMenu = new SubMenuItem(Text = "&File")
+fileMenu.Items.Add(model.ClickMeCommand) |> ignore
+
+let menu = new MenuBar(QuitItem = model.QuitCommand.CreateMenuItem(), AboutItem = model.AboutCommand.CreateMenuItem())
+menu.Items.Add(fileMenu)
+menu.ApplicationItems.Add(new ButtonMenuItem(Text = "&Preferences..."))
+this.Menu <- menu
+```
+
+```python {title="MainForm.py"}
+model = MainViewModel()
+self.DataContext = model
+
+fileMenu = forms.SubMenuItem()
+fileMenu.Text = "&File"
+fileMenu.Items.Add(model.ClickMeCommand)
+
+preferencesItem = forms.ButtonMenuItem()
+preferencesItem.Text = "&Preferences..."
+
+menu = forms.MenuBar()
+menu.Items.Add(fileMenu)
+menu.ApplicationItems.Add(preferencesItem)
+menu.QuitItem = model.QuitCommand
+menu.AboutItem = model.AboutCommand
+self.Menu = menu
+```
+
 {{< /code-tabs >}}
 
 - `Items` are the top-level menus. `&` marks the letter used for keyboard access on Windows and Linux.
@@ -136,9 +208,26 @@ In XAML and JSON, `{Binding ClickMeCommand}` finds the command in the form's `Da
 
 Add a check command to the view model that keeps the window on top:
 
+{{< code-tabs >}}
+
 ```csharp {title="MainViewModel.cs"}
 public CheckCommand AlwaysOnTopCommand { get; } = new CheckCommand { MenuText = "Always on &Top", ToolBarText = "On Top" };
 ```
+
+```fsharp {title="MainViewModel.fs"}
+let alwaysOnTopCommand = new CheckCommand(MenuText = "Always on &Top", ToolBarText = "On Top")
+// ...
+member _.AlwaysOnTopCommand = alwaysOnTopCommand
+```
+
+```python {title="MainViewModel.py"}
+# in __init__
+self.AlwaysOnTopCommand = forms.CheckCommand()
+self.AlwaysOnTopCommand.MenuText = "Always on &Top"
+self.AlwaysOnTopCommand.ToolBarText = "On Top"
+```
+
+{{< /code-tabs >}}
 
 The window is the form's job rather than the view model's, so have the form react when the command is checked:
 
@@ -175,6 +264,22 @@ public MainForm()
 }
 ```
 
+```fsharp {title="MainForm.fs"}
+let model = new MainViewModel()
+this.DataContext <- model
+
+model.AlwaysOnTopCommand.CheckedChanged.Add(fun _ -> this.Topmost <- model.AlwaysOnTopCommand.Checked)
+```
+
+```python {title="MainForm.py"}
+model = MainViewModel()
+self.DataContext = model
+
+def onTopChanged(sender, e):
+    self.Topmost = model.AlwaysOnTopCommand.Checked
+model.AlwaysOnTopCommand.CheckedChanged += onTopChanged
+```
+
 {{< /code-tabs >}}
 
 Then add a View menu to the menu bar:
@@ -204,6 +309,21 @@ new SubMenuItem { Text = "&View", Items = { model.AlwaysOnTopCommand } },
 }
 ```
 
+```fsharp {title="MainForm.fs"}
+// after adding the File menu
+let viewMenu = new SubMenuItem(Text = "&View")
+viewMenu.Items.Add(model.AlwaysOnTopCommand) |> ignore
+menu.Items.Add(viewMenu)
+```
+
+```python {title="MainForm.py"}
+# after adding the File menu
+viewMenu = forms.SubMenuItem()
+viewMenu.Text = "&View"
+viewMenu.Items.Add(model.AlwaysOnTopCommand)
+menu.Items.Add(viewMenu)
+```
+
 {{< /code-tabs >}}
 
 Radio items are grouped by creating them from `RadioCommand`s that share a `Controller`, so radio groups currently need to be built in code.
@@ -211,6 +331,8 @@ Radio items are grouped by creating them from `RadioCommand`s that share a `Cont
 ## Shortcuts
 
 Set `Shortcut` on a command to give it a keyboard shortcut. Use `Application.Instance.CommonModifier` for the key users expect on each platform, Ctrl on Windows and Linux and Cmd on macOS:
+
+{{< code-tabs >}}
 
 ```csharp {title="MainViewModel.cs"}
 public Command ClickMeCommand { get; } = new Command
@@ -220,6 +342,20 @@ public Command ClickMeCommand { get; } = new Command
     Shortcut = Application.Instance.CommonModifier | Keys.K
 };
 ```
+
+```fsharp {title="MainViewModel.fs"}
+let clickMeCommand =
+    new Command(
+        MenuText = "Click Me!",
+        ToolBarText = "Click Me!",
+        Shortcut = (Application.Instance.CommonModifier ||| Keys.K))
+```
+
+```python {title="MainViewModel.py"}
+self.ClickMeCommand.Shortcut = forms.Application.Instance.CommonModifier | forms.Keys.K
+```
+
+{{< /code-tabs >}}
 
 In XAML and JSON, set it on the menu item instead, e.g. `Shortcut="CommonModifier+K"`.
 
@@ -254,6 +390,22 @@ ToolBar = new ToolBar
     { "$type": "CheckToolItem", "Text": "On Top", "Command": "{Binding AlwaysOnTopCommand}" }
   ]
 }
+```
+
+```fsharp {title="MainForm.fs"}
+let toolBar = new ToolBar()
+toolBar.Items.Add(model.ClickMeCommand)
+toolBar.Items.Add(new SeparatorToolItem())
+toolBar.Items.Add(model.AlwaysOnTopCommand)
+this.ToolBar <- toolBar
+```
+
+```python {title="MainForm.py"}
+toolBar = forms.ToolBar()
+toolBar.Items.Add(model.ClickMeCommand)
+toolBar.Items.Add(forms.SeparatorToolItem())
+toolBar.Items.Add(model.AlwaysOnTopCommand)
+self.ToolBar = toolBar
 ```
 
 {{< /code-tabs >}}

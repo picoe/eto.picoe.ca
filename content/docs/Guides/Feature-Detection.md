@@ -8,6 +8,8 @@ Some features of Eto.Forms are only available on certain platforms. Check that a
 
 To check whether the current platform has a control, use `Platform.Supports<T>()`:
 
+{{< code-tabs >}}
+
 ```csharp
 public class MyForm : Form
 {
@@ -20,6 +22,26 @@ public class MyForm : Form
     }
 }
 ```
+
+```fsharp
+type MyForm() as this =
+    inherit Form()
+    do
+        if this.Platform.Supports<TrayIndicator>() then
+            // add a tray icon
+            ()
+```
+
+```python
+class MyForm(forms.Form):
+    def __init__(self):
+        super(MyForm, self).__init__()
+        if self.Platform.Supports[forms.TrayIndicator]():
+            # add a tray icon
+            pass
+```
+
+{{< /code-tabs >}}
 
 ## Feature support
 

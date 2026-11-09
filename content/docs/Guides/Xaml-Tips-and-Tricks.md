@@ -16,6 +16,12 @@ When you want to use images in your xaml (.xeto) or other embedded resources, yo
     <ImageView Image="{Resource MyAssembly.Path.To.Image.png, MyAssembly}" />
     ```
 
+    In JSON (.jeto), use a `resource:` value instead:
+
+    ```json
+    { "$type": "ImageView", "Image": "resource:MyAssembly.Path.To.Image.png, MyAssembly" }
+    ```
+
     The resource file path should be provided in the same format returned by ```Assembly.GetManifestResourceNames()```.
 
     Note: You can omit the assembly at the end if your code behind class is in the same assembly.
