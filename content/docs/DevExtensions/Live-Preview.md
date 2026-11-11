@@ -30,7 +30,7 @@ The preview runs your project's code in a separate process, so a crash or hang i
 
 ## Trying other sizes
 
-Drag the handle at the bottom-right corner of the preview to resize the view, e.g. to check how a layout stretches. In Rider, click the size label to go back to the view's own size.
+Drag the handle at the bottom-right corner of the preview to resize the view, e.g. to check how a layout stretches. Click the size label to go back to the view's own size.
 
 ## Your own controls
 
