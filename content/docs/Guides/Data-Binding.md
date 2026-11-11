@@ -95,6 +95,32 @@ public MyForm()
 }
 ```
 
+```cs {tab="xaml" title="MyModel.cs"}
+// typically implemented view model
+public class MyModel : INotifyPropertyChanged
+{
+    string myString;
+    public string MyString
+    {
+        get { return myString; }
+        set
+        {
+            if (myString != value)
+            {
+                myString = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    void OnPropertyChanged([CallerMemberName] string memberName = null)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(memberName));
+    }
+    public event PropertyChangedEventHandler PropertyChanged;
+}
+```
+
 ```json {title="MyForm.jeto"}
 "Content": { "$type": "TextBox", "Text": "{Binding MyString}" }
 ```
@@ -106,6 +132,32 @@ public MyForm()
 
     // set the view model for the form and all child controls
     DataContext = new MyModel { MyString = "Hello!" };
+}
+```
+
+```cs {tab="json" title="MyModel.cs"}
+// typically implemented view model
+public class MyModel : INotifyPropertyChanged
+{
+    string myString;
+    public string MyString
+    {
+        get { return myString; }
+        set
+        {
+            if (myString != value)
+            {
+                myString = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    void OnPropertyChanged([CallerMemberName] string memberName = null)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(memberName));
+    }
+    public event PropertyChangedEventHandler PropertyChanged;
 }
 ```
 
@@ -219,8 +271,50 @@ public class MyModel : INotifyPropertyChanged
 <TextBox Text="{Binding MyString}" Enabled="{Binding IsEnabled}" />
 ```
 
+```cs {tab="xaml" title="MyModel.cs"}
+public class MyModel : INotifyPropertyChanged
+{
+    // ... snipped for brevity
+
+    bool isEnabled = true;
+    public bool IsEnabled
+    {
+        get { return isEnabled; }
+        set
+        {
+            if (isEnabled != value)
+            {
+                isEnabled = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+}
+```
+
 ```json
 { "$type": "TextBox", "Text": "{Binding MyString}", "Enabled": "{Binding IsEnabled}" }
+```
+
+```cs {tab="json" title="MyModel.cs"}
+public class MyModel : INotifyPropertyChanged
+{
+    // ... snipped for brevity
+
+    bool isEnabled = true;
+    public bool IsEnabled
+    {
+        get { return isEnabled; }
+        set
+        {
+            if (isEnabled != value)
+            {
+                isEnabled = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+}
 ```
 
 ```fsharp
