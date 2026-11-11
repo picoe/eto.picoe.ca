@@ -343,7 +343,8 @@ a.sidebar-heading:hover,
 
 .code-tabs-bar {
   padding: 0 0.5rem;
-  overflow-x: auto;
+  /* Wrap rather than scroll, so trackpad scrolling over the tabs moves the page in Safari. */
+  flex-wrap: wrap;
 }
 
 /* Tabs show the language, so blocks inside them (and unlabelled ones) float just the copy button.
