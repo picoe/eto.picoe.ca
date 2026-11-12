@@ -31,13 +31,40 @@
     </figure>
   </section>
 
-  <section class="feature-grid">
-    {{ range site.Params.featureCards }}
-      <article class="feature-card">
-        <img src="{{ .icon | relURL }}" alt="" role="presentation" />
-        <h3>{{ .title }}</h3>
-        <p>{{ .body | markdownify }}</p>
-      </article>
-    {{ end }}
+  {{- $scroll := resources.Get "js/features.js" | minify | fingerprint }}
+  <section class="features" aria-labelledby="features-heading">
+    <header class="features-intro">
+      <p class="eyebrow">Why Eto.Forms</p>
+      <h2 id="features-heading">Everything you need for native apps everywhere.</h2>
+      <p>One .NET codebase, three desktops, and no compromises on how your app looks or feels.</p>
+    </header>
+    <div class="features-scroll">
+      <div class="features-steps">
+        {{ range $i, $f := site.Params.featureCards }}
+          <article class="feature-step{{ if eq $i 0 }} is-active{{ end }}" data-step="{{ $i }}">
+            <img class="feature-step-img" src="{{ .icon | relURL }}" alt="" role="presentation" />
+            <p class="feature-eyebrow">{{ .eyebrow }}</p>
+            <h3>{{ .title }}</h3>
+            <p class="feature-lead">{{ .body | markdownify }}</p>
+            {{ with .points }}
+              <ul class="feature-points">
+                {{ range . }}<li>{{ . | markdownify }}</li>{{ end }}
+              </ul>
+            {{ end }}
+            {{ with .linkURL }}<a class="feature-link" href="{{ . | relURL }}">{{ $f.linkLabel }} <span aria-hidden="true">→</span></a>{{ end }}
+          </article>
+        {{ end }}
+      </div>
+      <div class="features-stage" aria-hidden="true">
+        <div class="features-stage-inner">
+          <div class="features-frame">
+            {{ range $i, $f := site.Params.featureCards }}
+              <img src="{{ .icon | relURL }}" alt="" data-step="{{ $i }}"{{ if eq $i 0 }} class="is-active"{{ end }} />
+            {{ end }}
+          </div>
+        </div>
+      </div>
+    </div>
   </section>
+  <script defer src="{{ $scroll.RelPermalink }}" integrity="{{ $scroll.Data.Integrity }}"></script>
 {{ end }}

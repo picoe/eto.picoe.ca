@@ -165,27 +165,183 @@ img {
   }
 }
 
-.feature-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1.5rem;
-  padding: 3rem 0;
-  max-width: 1100px;
-  margin: 0 auto;
+/* Home page features: text scrolls past a pinned image, Apple-style. */
+.features {
+  padding: 4rem 0 2rem;
 }
 
-.feature-card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 1rem;
-  padding: 1.5rem;
+.features-intro {
+  max-width: 720px;
+  margin: 0 auto 2rem;
   text-align: center;
-  box-shadow: var(--shadow-soft);
 }
 
-.feature-card img {
-  height: 140px;
-  margin-bottom: 1rem;
+.features-intro .eyebrow,
+.feature-eyebrow {
+  margin: 0 0 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+}
+
+.features-intro h2 {
+  margin: 0 0 1rem;
+  font-size: clamp(2rem, 4.5vw, 3.25rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.features-intro p {
+  margin: 0;
+  font-size: 1.2rem;
+  color: var(--color-muted);
+}
+
+.feature-step {
+  padding: 2.5rem 0;
+}
+
+.feature-step h3 {
+  margin: 0 0 1rem;
+  font-size: clamp(1.6rem, 3vw, 2.4rem);
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+}
+
+.feature-lead {
+  margin: 0 0 1.25rem;
+  font-size: 1.15rem;
+  color: var(--color-muted);
+}
+
+.feature-points {
+  list-style: none;
+  margin: 0 0 1.5rem;
+  padding: 0;
+}
+
+.feature-points li {
+  position: relative;
+  padding: 0.35rem 0 0.35rem 1.75rem;
+}
+
+.feature-points li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.8rem;
+  width: 0.9rem;
+  height: 0.5rem;
+  border-left: 2px solid var(--color-primary-dark);
+  border-bottom: 2px solid var(--color-primary-dark);
+  transform: rotate(-45deg);
+}
+
+.feature-link {
+  font-weight: 600;
+}
+
+.feature-link span {
+  display: inline-block;
+  transition: transform 0.2s;
+}
+
+.feature-link:hover span {
+  transform: translateX(4px);
+}
+
+.feature-step-img {
+  display: block;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto 1.5rem;
+}
+
+.features-stage {
+  display: none;
+}
+
+/* Wide screens with the script running: pin the image and step through the text. */
+@media (min-width: 900px) {
+  .is-scrolly .features-scroll {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    gap: 3rem;
+  }
+
+  .is-scrolly .feature-step {
+    min-height: 75vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    opacity: 0.25;
+    transform: translateY(1.5rem);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+
+  .is-scrolly .feature-step.is-active {
+    opacity: 1;
+    transform: none;
+  }
+
+  .is-scrolly .feature-step-img {
+    display: none;
+  }
+
+  .is-scrolly .features-stage {
+    display: block;
+  }
+
+  /* Same height as a step, so the frame stays level with the first and last steps too. */
+  .features-stage-inner {
+    position: sticky;
+    top: 12.5vh;
+    height: 75vh;
+    display: flex;
+    align-items: center;
+  }
+
+  .features-frame {
+    position: relative;
+    width: 100%;
+    /* Keeps the frame within the pinned area on short windows. */
+    max-width: calc(75vh * 4 / 3);
+    margin: 0 auto;
+    aspect-ratio: 4 / 3;
+    border-radius: 1.5rem;
+    background: radial-gradient(circle at 30% 20%, rgba(119, 207, 230, 0.25), transparent 65%), var(--color-surface);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-soft);
+    overflow: hidden;
+  }
+
+  .features-stage img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    padding: 1.5rem;
+    object-fit: contain;
+    opacity: 0;
+    transform: scale(0.94);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+
+  .features-stage img.is-active {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .feature-step,
+  .features-stage img,
+  .feature-link span {
+    transition: none !important;
+    transform: none !important;
+  }
 }
 
 .site-body {

@@ -35,25 +35,58 @@ dotnet run"""
   image = "/img/screenshot-macos.png"
   width = 405
 
+  # Home page scrolling features: the image pins beside the text as each one scrolls by.
   [[params.featureCards]]
-  title = "Write UI Your Way"
+  eyebrow = "One codebase"
+  title = "Write your UI once. In the language you love."
   icon = "/img/feature-write-ui.svg"
-  body = "Build your UI in C#, VB.NET or F#, or in XAML or JSON. Layouts like `StackLayout` and `TableLayout` size themselves, so there's no pixel pushing."
+  body = "Describe your interface in C#, F# or VB.NET, or keep it declarative with XAML or JSON. However you write it, the same UI ships to Windows, macOS and Linux without a single `#if`."
+  points = [
+    "Layouts like `StackLayout` and `TableLayout` size themselves, so there's no pixel pushing.",
+    "Data binding keeps your views and models in sync with a line of code.",
+    "Mix code and markup freely, even in the same window.",
+  ]
+  linkLabel = "Try the tutorials"
+  linkURL = "/docs/tutorials/"
 
   [[params.featureCards]]
-  title = "Native on Every Platform"
+  eyebrow = "Truly native"
+  title = "Not a lookalike. The real thing."
   icon = "/img/feature-native-controls.svg"
-  body = "Each control is the platform's own: WPF or WinForms on Windows, Cocoa on macOS and GTK on Linux. Your app looks and behaves like it belongs."
+  body = "Eto.Forms doesn't draw its own imitation widgets. Every button, list and dialog is the platform's own: WPF or WinForms on Windows, Cocoa on macOS and GTK on Linux. Your app looks, feels and behaves like it belongs, because it does."
+  points = [
+    "Accessibility, keyboard navigation and text input come straight from the OS.",
+    "Native rendering means fast startup and a small footprint.",
+    "Release builds bundle .NET, so users just download and run.",
+  ]
+  linkLabel = "See supported platforms"
+  linkURL = "/docs/quickstart/supported-platforms/"
 
   [[params.featureCards]]
-  title = "Drop to Native When You Need To"
+  eyebrow = "No dead ends"
+  title = "Drop to native whenever you need to."
   icon = "/img/feature-native-access.svg"
-  body = "Reach the underlying native control from any Eto control, embed Eto in an existing app, or write your own custom controls."
+  body = "Cross-platform shouldn't mean lowest common denominator. Reach the underlying native control from any Eto control, add platform-specific styles, or build custom controls with a native implementation for each platform."
+  points = [
+    "Embed Eto in an existing WinForms, WPF or Cocoa app, one window at a time.",
+    "Host native controls inside your Eto layouts.",
+    "Style controls per platform without touching your shared code.",
+  ]
+  linkLabel = "Read about embedding"
+  linkURL = "/docs/guides/embedding/"
 
   [[params.featureCards]]
-  title = "Design in Your IDE"
+  eyebrow = "Developer extensions"
+  title = "See it before you run it."
   icon = "/img/feature-dev-extensions.svg"
-  body = "The [developer extensions](/docs/devextensions/) for Visual Studio, VS Code and Rider add a live preview and IntelliSense for your forms as you type."
+  body = "The developer extensions for Visual Studio, VS Code and Rider put a live preview right beside your editor. It redraws as you type, on the platform and theme you choose, so you can design without the build and run loop."
+  points = [
+    "IntelliSense for controls, properties, events and bindings in XAML and JSON.",
+    "Jump between designer and code with a single key.",
+    "Project and item templates to get going in seconds.",
+  ]
+  linkLabel = "Get the extensions"
+  linkURL = "/docs/devextensions/"
 
 [[params.footerColumns]]
   title = "Docs"
